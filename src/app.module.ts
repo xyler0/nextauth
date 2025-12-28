@@ -9,6 +9,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { HealthModule } from './health/health.module';
+import { validationSchema } from './config/validation.schema';
 
 @Module({
   imports: [
@@ -16,6 +17,10 @@ import { HealthModule } from './health/health.module';
       isGlobal: true,
       load: [appConfig, githubConfig],
       envFilePath: ['.env'],
+      validationSchema,
+      validationOptions: {
+        abortEarly: true, // Stop on first error
+      },
     }),
     ThrottlerModule.forRoot([
       {
