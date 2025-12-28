@@ -8,7 +8,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
-
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -24,6 +24,7 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
       },
     ]),
     GitHubModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [
