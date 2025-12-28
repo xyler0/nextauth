@@ -2,8 +2,11 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
+import { GitHubModule } from './modules/github/github.module';
 import appConfig from './config/app.config';
 import githubConfig from './config/github.config';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -12,8 +15,20 @@ import githubConfig from './config/github.config';
       load: [appConfig, githubConfig],
       envFilePath: ['.env'],
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000, // 1 minute
+        limit: 10, // 10 requests per minute
+      },
+    ]),
+    GitHubModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService,
+     {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}
