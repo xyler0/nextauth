@@ -12,3 +12,45 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model Post {
+  id        String   @id @default(cuid())
+  content   String
+  hash      String   @unique // For deduplication
+  source    PostSource
+  posted    Boolean  @default(false)
+  postedAt  DateTime?
+  metadata  Json?    // Store GitHub commit info, journal entry ID, etc.
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([hash])
+  @@index([posted, createdAt])
+  @@index([source, createdAt])
+}
+
+enum PostSource {
+  GITHUB
+  JOURNAL
+}
+
+model JournalEntry {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  metadata  Json?    // Tags, mood, etc.
+  processed Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([processed, createdAt])
+}
+
+model PostingStats {
+  id        String   @id @default(cuid())
+  date      DateTime @unique @db.Date
+  count     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([date])
+}
