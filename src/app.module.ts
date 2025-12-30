@@ -10,6 +10,7 @@ import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { HealthModule } from './health/health.module';
 import { validationSchema } from './config/validation.schema';
+import { DatabaseModule } from './database/database.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { validationSchema } from './config/validation.schema';
         limit: 10, // 10 requests per minute
       },
     ]),
+    DatabaseModule,
     GitHubModule,
     HealthModule,
   ],
