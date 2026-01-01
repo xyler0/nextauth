@@ -5,7 +5,30 @@ import {
   HealthCheckService,
   MemoryHealthIndicator,
   DiskHealthIndicator,
+  HealthIndicatorService,
+  HealthIndicatorResult,
 } from '@nestjs/terminus';
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../database/prisma.service';
+
+@Injectable()
+ export class DatabaseHealthIndicator {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly healthIndicatorService: HealthIndicatorService,
+  ) {}
+
+   async isHealthy(key: string) {
+    const indicator = this.healthIndicatorService.check(key);
+
+    try {
+      await this.prisma.$queryRaw`SELECT 1`;
+      return indicator.up();
+    } catch (error) {
+      return indicator.down({ error: error.message });
+    }
+  }
+}
 
 @ApiTags('health')
 @Controller('health')
@@ -14,6 +37,7 @@ export class HealthController {
     private health: HealthCheckService,
     private memory: MemoryHealthIndicator,
     private disk: DiskHealthIndicator,
+    private db: DatabaseHealthIndicator,
   ) {}
 
   @Get()
@@ -22,9 +46,10 @@ export class HealthController {
   @ApiResponse({ status: 200, description: 'Service is healthy' })
   check() {
     return this.health.check([
-      () => this.memory.checkHeap('memory_heap', 150 * 1024 * 1024), // 150MB
-      () => this.memory.checkRSS('memory_rss', 300 * 1024 * 1024), // 300MB
+      () => this.memory.checkHeap('memory_heap', 150 * 1024 * 1024),
+      () => this.memory.checkRSS('memory_rss', 300 * 1024 * 1024),
       () => this.disk.checkStorage('disk', { path: '/', thresholdPercent: 0.9 }),
+      () => this.db.isHealthy('database'),
     ]);
   }
 }
