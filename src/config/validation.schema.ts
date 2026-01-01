@@ -6,9 +6,17 @@ export const validationSchema = Joi.object({
     .default('development'),
   PORT: Joi.number().default(3000),
   
+  // Database
+  DATABASE_URL: Joi.string().required(),
+  
   // GitHub
   GITHUB_WEBHOOK_SECRET: Joi.string().required(),
   GITHUB_MODE: Joi.string().valid('webhook', 'polling').default('webhook'),
+  
+  // OpenAI
+  OPENAI_API_KEY: Joi.string().required(),
+  OPENAI_MODEL: Joi.string().default('gpt-4o-mini'),
+  OPENAI_TEMPERATURE: Joi.number().min(0).max(2).default(0.3),
   
   // Posting Rules
   MAX_POSTS_PER_DAY: Joi.number().min(1).max(10).default(3),

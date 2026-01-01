@@ -5,25 +5,40 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { verify } from '@octokit/webhooks-methods';
+import { Webhooks } from '@octokit/webhooks';
 
 @Injectable()
 export class GitHubWebhookGuard implements CanActivate {
-  constructor(private config: ConfigService) {}
+  private webhooks: Webhooks;
+
+  constructor(private config: ConfigService) {
+    const secret = this.config.get<string>('GITHUB_WEBHOOK_SECRET');
+
+    if (!secret) {
+      throw new Error('GITHUB_WEBHOOK_SECRET not configured');
+    }
+
+    this.webhooks = new Webhooks({ secret });
+  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const signature = request.headers['x-hub-signature-256'];
-    const secret = this.config.get<string>('GITHUB_WEBHOOK_SECRET');
 
-    if (!signature || !secret) {
-      throw new UnauthorizedException('Missing webhook signature or secret');
+    const signature = request.headers['x-hub-signature-256'];
+    if (!signature) {
+      throw new UnauthorizedException('Missing webhook signature');
     }
 
     const payload = JSON.stringify(request.body);
-    const isValid = await verify(secret, payload, signature);
 
-    if (!isValid) {
+    try {
+      await this.webhooks.verifyAndReceive({
+        id: request.headers['x-github-delivery'],
+        name: request.headers['x-github-event'],
+        signature,
+        payload,
+      });
+    } catch {
       throw new UnauthorizedException('Invalid webhook signature');
     }
 
