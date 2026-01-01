@@ -6,6 +6,7 @@ import * as crypto from 'crypto';
 export interface CreatePostDto {
   content: string;
   source: PostSource;
+  userId: string;
   metadata?: any;
 }
 
@@ -23,6 +24,7 @@ export class StoreService {
         content: dto.content,
         hash,
         source: dto.source,
+        userId: dto.userId,
         metadata: dto.metadata,
       },
     });
@@ -31,10 +33,10 @@ export class StoreService {
     return { id: post.id, hash: post.hash };
   }
 
-  async isDuplicate(content: string): Promise<boolean> {
+  async isDuplicate(content: string, userId: string): Promise<boolean> {
     const hash = this.generateHash(content);
     const existing = await this.prisma.post.findUnique({
-      where: { hash },
+      where: { hash, userId },
     });
     return !!existing;
   }
@@ -50,12 +52,13 @@ export class StoreService {
     this.logger.log(`Post marked as posted: ${id}`);
   }
 
-  async getTodayPostCount(): Promise<number> {
+  async getTodayPostCount(userId: string): Promise<number> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     return this.prisma.post.count({
       where: {
+        userId,
         postedAt: {
           gte: today,
         },
@@ -63,9 +66,25 @@ export class StoreService {
     });
   }
 
-  async canPostToday(maxPosts: number): Promise<boolean> {
-    const count = await this.getTodayPostCount();
+  async canPostToday(userId: string, maxPosts: number): Promise<boolean> {
+    const count = await this.getTodayPostCount(userId);
     return count < maxPosts;
+  }
+
+  async getUserPosts(userId: string, limit = 50) {
+    return this.prisma.post.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      select: {
+        id: true,
+        content: true,
+        source: true,
+        posted: true,
+        postedAt: true,
+        createdAt: true,
+      },
+    });
   }
 
   async incrementDailyStats(date: Date): Promise<void> {
