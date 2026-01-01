@@ -13,36 +13,9 @@ datasource db {
   provider = "postgresql"
 }
 
-model Post {
-  id        String   @id @default(cuid())
-  content   String
-  hash      String   @unique // For deduplication
-  source    PostSource
-  posted    Boolean  @default(false)
-  postedAt  DateTime?
-  metadata  Json?    // Store GitHub commit info, journal entry ID, etc.
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([hash])
-  @@index([posted, createdAt])
-  @@index([source, createdAt])
-}
-
 enum PostSource {
   GITHUB
   JOURNAL
-}
-
-model JournalEntry {
-  id        String   @id @default(cuid())
-  content   String   @db.Text
-  metadata  Json?    // Tags, mood, etc.
-  processed Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([processed, createdAt])
 }
 
 model PostingStats {
@@ -53,4 +26,71 @@ model PostingStats {
   updatedAt DateTime @updatedAt
 
   @@index([date])
+}
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   
+  name      String?
+  
+  // X/Twitter credentials per user
+  xApiKey        String?
+  xApiSecret     String?
+  xAccessToken   String?
+  xAccessSecret  String?
+  
+  // GitHub settings per user
+  githubUsername String?
+  githubRepos    String[] // Array of repo names to monitor
+  
+  // Settings
+  maxPostsPerDay Int      @default(3)
+  timezone       String   @default("UTC")
+  
+  posts          Post[]
+  journalEntries JournalEntry[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([email])
+}
+
+// Post model to link to user
+model Post {
+  id        String   @id @default(cuid())
+  content   String
+  hash      String   @unique
+  source    PostSource
+  posted    Boolean  @default(false)
+  postedAt  DateTime?
+  metadata  Json?
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([hash])
+  @@index([posted, createdAt])
+  @@index([source, createdAt])
+  @@index([userId, createdAt])
+}
+
+// Updated JournalEntry to link to user
+model JournalEntry {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  metadata  Json?
+  processed Boolean  @default(false)
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([processed, createdAt])
+  @@index([userId, createdAt])
 }
