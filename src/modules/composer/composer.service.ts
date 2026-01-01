@@ -22,19 +22,21 @@ export class ComposerService {
   async compose(
     rawText: string,
     source: PostSource,
+    userId: string,
+    userMaxPosts: number, 
     metadata?: any,
   ): Promise<{ posted: boolean; reason?: string }> {
-    this.logger.log(`Composing post from ${source}`);
+    this.logger.log(`Composing post from ${source} for user ${userId}`);
 
     // Check daily limit
-    const canPost = await this.store.canPostToday(this.maxPostsPerDay);
+    const canPost = await this.store.canPostToday(userId, userMaxPosts);
     if (!canPost) {
-      this.logger.warn('Daily post limit reached');
+      this.logger.warn('Daily post limit reached for user ${userId}');
       return { posted: false, reason: 'Daily limit reached' };
     }
 
     // Check for duplicates
-    const isDuplicate = await this.store.isDuplicate(rawText);
+    const isDuplicate = await this.store.isDuplicate(rawText, userId);
     if (isDuplicate) {
       this.logger.warn('Duplicate content detected');
       return { posted: false, reason: 'Duplicate content' };
@@ -48,12 +50,13 @@ export class ComposerService {
       // Create post record
       const { id } = await this.store.createPost({
         content: polished,
+        userId,
         source,
         metadata,
       });
 
       // Post to X
-      await this.x.post(polished);
+      await this.x.post(polished, userId);
 
       // Mark as posted
       await this.store.markAsPosted(id);
@@ -70,12 +73,14 @@ export class ComposerService {
   async composeMany(
     texts: string[],
     source: PostSource,
+    userId: string,
+    userMaxPosts: number, 
     metadata?: any,
   ): Promise<Array<{ text: string; posted: boolean; reason?: string }>> {
     const results: Array<{ text: string; posted: boolean; reason?: string }> = [];
 
     for (const text of texts) {
-      const result = await this.compose(text, source, metadata);
+      const result = await this.compose(text, source, userId, userMaxPosts, metadata);
       results.push({ text, ...result });
 
       // Add delay between posts to avoid rate limiting
