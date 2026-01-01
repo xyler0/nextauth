@@ -11,6 +11,7 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { HealthModule } from './health/health.module';
 import { validationSchema } from './config/validation.schema';
 import { DatabaseModule } from './database/database.module';
+import { JournalModule } from './modules/journal/journal.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { DatabaseModule } from './database/database.module';
     DatabaseModule,
     GitHubModule,
     HealthModule,
+    JournalModule,
   ],
   controllers: [AppController],
   providers: [
