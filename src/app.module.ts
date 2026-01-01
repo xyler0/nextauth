@@ -12,6 +12,8 @@ import { HealthModule } from './health/health.module';
 import { validationSchema } from './config/validation.schema';
 import { DatabaseModule } from './database/database.module';
 import { JournalModule } from './modules/journal/journal.module';
+import { XModule } from './modules/x/x.module';
+import { ComposerModule } from './modules/composer/composer.module';
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import { JournalModule } from './modules/journal/journal.module';
     GitHubModule,
     HealthModule,
     JournalModule,
+    XModule,
+    ComposerModule,
   ],
   controllers: [AppController],
   providers: [
