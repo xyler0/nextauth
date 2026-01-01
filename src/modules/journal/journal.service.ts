@@ -1,4 +1,4 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { JournalProcessor } from './journal.processor';
 import { CreateJournalDto } from './dto/create-journal.dto';
@@ -13,14 +13,14 @@ export class JournalService {
     private readonly processor: JournalProcessor,
   ) {}
 
-  async createEntry(dto: CreateJournalDto): Promise<JournalResponseDto> {
-    this.logger.log('Creating journal entry');
+  async createEntry(dto: CreateJournalDto, userId: string): Promise<JournalResponseDto> {
+    this.logger.log(`Creating journal entry for user ${userId}`);
 
-    // Save journal entry
     const entry = await this.prisma.journalEntry.create({
       data: {
         content: dto.content,
         metadata: dto.metadata,
+        userId,
       },
     });
 
@@ -33,10 +33,9 @@ export class JournalService {
     };
   }
 
-  async processEntry(entryId: string): Promise<string[]> {
+  async processEntry(entryId: string, userId: string): Promise<string[]> {
     this.logger.log(`Processing journal entry: ${entryId}`);
 
-    // Fetch entry
     const entry = await this.prisma.journalEntry.findUnique({
       where: { id: entryId },
     });
@@ -45,14 +44,17 @@ export class JournalService {
       throw new BadRequestException('Journal entry not found');
     }
 
+    // Verify ownership
+    if (entry.userId !== userId) {
+      throw new ForbiddenException('You do not own this journal entry');
+    }
+
     if (entry.processed) {
       throw new BadRequestException('Journal entry already processed');
     }
 
-    // Extract top 2 segments
     const segments = this.processor.process(entry.content);
 
-    // Mark as processed
     await this.prisma.journalEntry.update({
       where: { id: entryId },
       data: { processed: true },
@@ -62,9 +64,26 @@ export class JournalService {
     return segments;
   }
 
-  async getUnprocessedEntries(): Promise<string[]> {
+  async getUserEntries(userId: string, limit = 50) {
+    return this.prisma.journalEntry.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      select: {
+        id: true,
+        content: true,
+        processed: true,
+        createdAt: true,
+      },
+    });
+  }
+
+  async getUnprocessedEntries(userId: string): Promise<string[]> {
     const entries = await this.prisma.journalEntry.findMany({
-      where: { processed: false },
+      where: {
+        processed: false,
+        userId, 
+      },
       orderBy: { createdAt: 'asc' },
       select: { id: true },
     });
