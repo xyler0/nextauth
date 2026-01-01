@@ -20,6 +20,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PostsController } from './modules/posts/posts.controller';
 import { PostsModule } from './modules/posts/post.module';
+import { UserController } from './modules/user/user.controller';
 
 @Module({
   imports: [
@@ -49,7 +50,7 @@ import { PostsModule } from './modules/posts/post.module';
     AuthModule,
     PostsModule,
   ],
-  controllers: [AppController, PostsController],
+  controllers: [AppController, PostsController, UserController],
   providers: [
     AppService,
     {
