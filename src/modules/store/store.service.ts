@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { PostSource } from '../../generated/prisma/client';
 import * as crypto from 'crypto';
@@ -85,6 +85,24 @@ export class StoreService {
         createdAt: true,
       },
     });
+  }
+  async getPostById(id: string, userId: string) {
+    const post = await this.prisma.post.findFirst({
+      where: { id, userId },
+    });
+
+    if (!post) {
+      throw new BadRequestException('Post not found');
+    }
+
+    return post;
+  }
+
+  async deletePost(id: string): Promise<void> {
+    await this.prisma.post.delete({
+      where: { id },
+    });
+    this.logger.log(`Post deleted: ${id}`);
   }
 
   async incrementDailyStats(date: Date): Promise<void> {
