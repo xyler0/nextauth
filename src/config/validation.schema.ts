@@ -23,4 +23,8 @@ export const validationSchema = Joi.object({
   
   // Security
   ALLOWED_ORIGINS: Joi.string().default('http://localhost:3000'),
+  
+  // JWT
+  JWT_SECRET: Joi.string().required(),
+
 });

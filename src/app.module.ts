@@ -16,6 +16,8 @@ import { XModule } from './modules/x/x.module';
 import { ComposerModule } from './modules/composer/composer.module';
 import { SchedulerModule } from './modules/scheduler/scheduler.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { AuthModule } from './modules/auth/auth.module';
+import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -42,6 +44,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     XModule,
     ComposerModule,
     SchedulerModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [
@@ -49,6 +52,10 @@ import { ScheduleModule } from '@nestjs/schedule';
     {
      provide: APP_GUARD,
      useClass: ThrottlerGuard,
+    },
+    {
+     provide: APP_GUARD,
+     useClass: JwtAuthGuard,
     },
   ],
 })
