@@ -1,29 +1,27 @@
 import {
   Controller,
   Post,
+  Get,
   Body,
-  UseGuards,
+  Param,
   HttpCode,
   HttpStatus,
   Logger,
-  Param,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiSecurity,
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { JournalService } from './journal.service';
 import { CreateJournalDto } from './dto/create-journal.dto';
 import { JournalResponseDto } from './dto/journal-response.dto';
-import { ApiKeyGuard } from '../../common/guards/api-key.guard';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @ApiTags('journal')
 @Controller('journal')
-@UseGuards(ApiKeyGuard)
-@ApiSecurity('X-API-Key')
+@ApiBearerAuth()
 export class JournalController {
   private readonly logger = new Logger(JournalController.name);
 
@@ -31,7 +29,7 @@ export class JournalController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({
+  @ApiOperation({ 
     summary: 'Create journal entry',
     description: 'Submit a journal entry for processing and post generation',
   })
@@ -40,19 +38,12 @@ export class JournalController {
     description: 'Journal entry created successfully',
     type: JournalResponseDto,
   })
-  @ApiResponse({
-    status: 401,
-    description: 'Invalid or missing API key',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Invalid journal content',
-  })
   async createEntry(
     @Body() dto: CreateJournalDto,
+    @CurrentUser() user: any,
   ): Promise<JournalResponseDto> {
-    this.logger.log('Received journal entry');
-    return this.journalService.createEntry(dto);
+    this.logger.log(`Received journal entry from user ${user.id}`);
+    return this.journalService.createEntry(dto, user.id);
   }
 
   @Post(':id/process')
@@ -64,18 +55,20 @@ export class JournalController {
   @ApiResponse({
     status: 200,
     description: 'Journal processed successfully',
-    schema: {
-      example: {
-        segments: [
-          'Today I built a new feature for automated posting',
-          'The system now filters GitHub commits intelligently',
-        ],
-      },
-    },
   })
-  async processEntry(@Param('id') id: string) {
-    this.logger.log(`Processing journal entry: ${id}`);
-    const segments = await this.journalService.processEntry(id);
+  async processEntry(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+  ) {
+    this.logger.log(`Processing journal entry: ${id} for user ${user.id}`);
+    const segments = await this.journalService.processEntry(id, user.id);
     return { segments };
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Get user journal entries' })
+  @ApiResponse({ status: 200, description: 'List of journal entries' })
+  async getUserEntries(@CurrentUser() user: any) {
+    return this.journalService.getUserEntries(user.id);
   }
 }
