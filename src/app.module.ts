@@ -14,6 +14,8 @@ import { DatabaseModule } from './database/database.module';
 import { JournalModule } from './modules/journal/journal.module';
 import { XModule } from './modules/x/x.module';
 import { ComposerModule } from './modules/composer/composer.module';
+import { SchedulerModule } from './modules/scheduler/scheduler.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -26,6 +28,7 @@ import { ComposerModule } from './modules/composer/composer.module';
         abortEarly: true, // Stop on first error
       },
     }),
+    ScheduleModule.forRoot(),
     ThrottlerModule.forRoot([
       {
         ttl: 60000, // 1 minute
@@ -38,6 +41,7 @@ import { ComposerModule } from './modules/composer/composer.module';
     JournalModule,
     XModule,
     ComposerModule,
+    SchedulerModule,
   ],
   controllers: [AppController],
   providers: [
