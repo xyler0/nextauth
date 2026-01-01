@@ -1,0 +1,117 @@
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import OpenAI from 'openai';
+import { DEFAULT_TONE_RULES } from './constants/tone-rules.constant';
+import { TONE_SYSTEM_PROMPT } from './constants/tone-prompt.constant';
+import { ToneRules } from './interfaces/tone-rules.interface';
+
+@Injectable()
+export class ToneService {
+  private readonly logger = new Logger(ToneService.name);
+  private readonly openai: OpenAI;
+  private readonly rules: ToneRules;
+  private readonly model: string;
+  private readonly temperature: number;
+
+  constructor(private readonly config: ConfigService) {
+    const apiKey = this.config.get<string>('OPENAI_API_KEY');
+    if (!apiKey) {
+      throw new Error('OPENAI_API_KEY is required');
+    }
+
+    this.openai = new OpenAI({ apiKey });
+    this.rules = DEFAULT_TONE_RULES;
+    this.model = this.config.get<string>('OPENAI_MODEL', 'gpt-4o-mini');
+    this.temperature = this.config.get<number>('OPENAI_TEMPERATURE', 0.3);
+  }
+
+  async applyTone(rawText: string): Promise<string> {
+    this.logger.debug(`Applying tone to: ${rawText.substring(0, 50)}...`);
+
+    // Pre-validation
+    this.validateInput(rawText);
+
+    // Transform via LLM
+    const transformed = await this.transform(rawText);
+
+    // Post-validation
+    this.enforceRules(transformed);
+
+    this.logger.log(`Tone applied successfully`);
+    return transformed;
+  }
+
+  private validateInput(text: string): void {
+    if (!text || text.trim().length < 10) {
+      throw new BadRequestException('Input too short for tone transformation');
+    }
+
+    if (text.length > 5000) {
+      throw new BadRequestException('Input too long (max 5000 characters)');
+    }
+  }
+
+  private async transform(text: string): Promise<string> {
+    try {
+      const response = await this.openai.chat.completions.create({
+        model: this.model,
+        messages: [
+          { role: 'system', content: TONE_SYSTEM_PROMPT },
+          { role: 'user', content: text },
+        ],
+        temperature: this.temperature,
+        max_tokens: 100,
+      });
+
+      const content = response.choices[0].message.content?.trim();
+      if (!content) {
+        throw new Error('Empty response from OpenAI');
+      }
+
+      return content;
+    } catch (error) {
+      this.logger.error('OpenAI transformation failed', error);
+      throw new BadRequestException('Failed to apply tone transformation');
+    }
+  }
+
+  private enforceRules(text: string): void {
+    // Rule 1: Sentence count
+    const sentences = text.split(/[.!]/).filter((s) => s.trim().length > 0);
+    if (sentences.length > this.rules.maxSentences) {
+      throw new BadRequestException(
+        `Exceeds max sentences: ${sentences.length} (max: ${this.rules.maxSentences})`
+      );
+    }
+
+    // Rule 2: Sentence length
+    sentences.forEach((sentence, index) => {
+      const words = sentence.trim().split(/\s+/).length;
+      if (words > this.rules.maxSentenceLength) {
+        throw new BadRequestException(
+          `Sentence ${index + 1} too long: ${words} words (max: ${this.rules.maxSentenceLength})`
+        );
+      }
+      if (words < this.rules.minSentenceLength) {
+        throw new BadRequestException(
+          `Sentence ${index + 1} too short: ${words} words (min: ${this.rules.minSentenceLength})`
+        );
+      }
+    });
+
+    // Rule 3: Banned phrases
+    const lowerText = text.toLowerCase();
+    for (const phrase of this.rules.bannedPhrases) {
+      if (lowerText.includes(phrase.toLowerCase())) {
+        throw new BadRequestException(`Contains banned phrase: "${phrase}"`);
+      }
+    }
+
+    // Rule 4: X character limit
+    if (text.length > 280) {
+      throw new BadRequestException(
+        `Exceeds X character limit: ${text.length} (max: 280)`
+      );
+    }
+  }
+}
