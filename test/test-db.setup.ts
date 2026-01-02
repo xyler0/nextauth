@@ -11,8 +11,6 @@ export async function setupTestDb() {
 }
 
 export async function teardownTestDb() {
-  // Clean up again after tests
-  await setupTestDb();
   await prisma.$disconnect();
 }
 
