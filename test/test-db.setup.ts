@@ -1,6 +1,6 @@
 import { PrismaService } from '../src/database/prisma.service';
 
-export const prisma = new PrismaService();
+const prisma = new PrismaService();
 
 export async function setupTestDb() {
   // Clean all tables
@@ -11,5 +11,9 @@ export async function setupTestDb() {
 }
 
 export async function teardownTestDb() {
+  // Clean up again after tests
+  await setupTestDb();
   await prisma.$disconnect();
 }
+
+export { prisma };
