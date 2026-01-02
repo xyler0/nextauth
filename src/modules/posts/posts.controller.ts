@@ -67,7 +67,7 @@ export class PostsController {
 
     return {
       posted: result.posted,
-      postId: result.postId,
+      postId: result.posted,
       reason: result.reason,
     };
   }

@@ -25,7 +25,7 @@ export class ComposerService {
     userId: string,
     userMaxPosts: number, 
     metadata?: any,
-  ): Promise<{ posted: boolean; reason?: string }> {
+  ): Promise<{ posted: boolean; reason?: string; postId?: string }> {
     this.logger.log(`Composing post from ${source} for user ${userId}`);
 
     // Check daily limit

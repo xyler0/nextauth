@@ -28,18 +28,26 @@ export class SchedulerService {
     this.logger.log('Running daily journal processing');
 
     try {
-      const entryIds = await this.journal.getUnprocessedEntries();
+      const userId = this.config.get<string>('JOURNAL_PROCESS_USER_ID');
+      if (!userId) {
+        this.logger.warn('JOURNAL_PROCESS_USER_ID not set, skipping journal processing');
+        return;
+      }
+      const userMaxPosts = this.config.get<number>('JOURNAL_PROCESS_USER_MAX_POSTS', 1);
+      const entryIds = await this.journal.getUnprocessedEntries(userId);
       this.logger.log(`Found ${entryIds.length} unprocessed entries`);
 
       for (const entryId of entryIds) {
         // Extract segments
-        const segments = await this.journal.processEntry(entryId);
+        const segments = await this.journal.processEntry(entryId, userId);
         this.logger.log(`Extracted ${segments.length} segments from ${entryId}`);
 
         // Compose and post
         const results = await this.composer.composeMany(
           segments,
           PostSource.JOURNAL,
+          userId,
+          userMaxPosts,
           { journalEntryId: entryId },
         );
 

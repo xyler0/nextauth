@@ -18,9 +18,7 @@ import { SchedulerModule } from './modules/scheduler/scheduler.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from './modules/auth/auth.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
-import { PostsController } from './modules/posts/posts.controller';
 import { PostsModule } from './modules/posts/post.module';
-import { UserController } from './modules/user/user.controller';
 import { UserModule } from './modules/user/user.module';
 
 @Module({
@@ -52,7 +50,7 @@ import { UserModule } from './modules/user/user.module';
     PostsModule,
     UserModule,
   ],
-  controllers: [AppController, PostsController, UserController],
+  controllers: [AppController],
   providers: [
     AppService,
     {

@@ -1,7 +1,7 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../database/prisma.service';
-import { TwitterApi } from 'twitter-api-v2';
+import { TwitterApi, TwitterApiTokens } from 'twitter-api-v2';
 
 @Injectable()
 export class XService {
@@ -44,7 +44,7 @@ export class XService {
         appSecret: user.xApiSecret,
         accessToken: user.xAccessToken,
         accessSecret: user.xAccessSecret,
-      });
+      } as TwitterApiTokens );
 
       const tweet = await client.v2.tweet(text);
       this.logger.log(`Posted to X: ${tweet.data.id} for user ${userId}`);
@@ -84,7 +84,7 @@ export class XService {
         appSecret: user.xApiSecret,
         accessToken: user.xAccessToken,
         accessSecret: user.xAccessSecret,
-      });
+      } as TwitterApiTokens);
 
       await client.v2.me();
       return true;
