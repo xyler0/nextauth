@@ -146,4 +146,55 @@ describe('Journal E2E', () => {
         .expect(403);
     });
   });
+  describe('POST /journal/process-and-post', () => {
+  it('should process and post journal entry', async () => {
+    // Create entry
+    const createRes = await request(app.getHttpServer())
+      .post('/journal')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({
+        content: 'Today I shipped a major feature. The algorithm now scores text segments based on conviction, novelty, and signal. Performance improved significantly.',
+      });
+
+    const entryId = createRes.body.id;
+
+    return request(app.getHttpServer())
+      .post('/journal/process-and-post')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({ entryId })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body).toHaveProperty('processed', true);
+        expect(res.body).toHaveProperty('results');
+        expect(Array.isArray(res.body.results)).toBe(true);
+        
+        // Each result should have posting info
+        res.body.results.forEach((result: any) => {
+          expect(result).toHaveProperty('text');
+          expect(result).toHaveProperty('posted');
+        });
+      });
+  });
+
+  it('should not allow processing others journal', async () => {
+    // Create another user
+    const otherUser = await createTestUser(prisma, {
+      email: `other-${Date.now()}@example.com`,
+    });
+
+    // Create entry for other user
+    const entry = await prisma.journalEntry.create({
+      data: {
+        content: 'This is someone elses journal entry.',
+        userId: otherUser.id,
+      },
+    });
+
+    return request(app.getHttpServer())
+      .post('/journal/process-and-post')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({ entryId: entry.id })
+      .expect(403);
+  });
+});
 });
