@@ -76,42 +76,44 @@ export class ToneService {
   }
 
   private enforceRules(text: string): void {
-    // Rule 1: Sentence count
-    const sentences = text.split(/[.!]/).filter((s) => s.trim().length > 0);
-    if (sentences.length > this.rules.maxSentences) {
-      throw new BadRequestException(
-        `Exceeds max sentences: ${sentences.length} (max: ${this.rules.maxSentences})`
-      );
-    }
+  // Rule 1: X character limit (GLOBAL)
+  if (text.length > 280) {
+    throw new BadRequestException(
+      `Exceeds X character limit: ${text.length} (max: 280)`
+    );
+  }
 
-    // Rule 2: Sentence length
-    sentences.forEach((sentence, index) => {
-      const words = sentence.trim().split(/\s+/).length;
-      if (words > this.rules.maxSentenceLength) {
-        throw new BadRequestException(
-          `Sentence ${index + 1} too long: ${words} words (max: ${this.rules.maxSentenceLength})`
-        );
-      }
-      if (words < this.rules.minSentenceLength) {
-        throw new BadRequestException(
-          `Sentence ${index + 1} too short: ${words} words (min: ${this.rules.minSentenceLength})`
-        );
-      }
-    });
-
-    // Rule 3: Banned phrases
-    const lowerText = text.toLowerCase();
-    for (const phrase of this.rules.bannedPhrases) {
-      if (lowerText.includes(phrase.toLowerCase())) {
-        throw new BadRequestException(`Contains banned phrase: "${phrase}"`);
-      }
-    }
-
-    // Rule 4: X character limit
-    if (text.length > 280) {
-      throw new BadRequestException(
-        `Exceeds X character limit: ${text.length} (max: 280)`
-      );
+  // Rule 2: Banned phrases
+  const lowerText = text.toLowerCase();
+  for (const phrase of this.rules.bannedPhrases) {
+    if (lowerText.includes(phrase.toLowerCase())) {
+      throw new BadRequestException(`Contains banned phrase: "${phrase}"`);
     }
   }
+
+  // Rule 3: Sentence count
+  const sentences = text.split(/[.!]/).filter((s) => s.trim().length > 0);
+  if (sentences.length > this.rules.maxSentences) {
+    throw new BadRequestException(
+      `Exceeds max sentences: ${sentences.length} (max: ${this.rules.maxSentences})`
+    );
+  }
+
+  // Rule 4: Sentence length
+  sentences.forEach((sentence, index) => {
+    const words = sentence.trim().split(/\s+/).length;
+
+    if (words > this.rules.maxSentenceLength) {
+      throw new BadRequestException(
+        `Sentence ${index + 1} too long: ${words} words (max: ${this.rules.maxSentenceLength})`
+      );
+    }
+
+    if (words < this.rules.minSentenceLength) {
+      throw new BadRequestException(
+        `Sentence ${index + 1} too short: ${words} words (min: ${this.rules.minSentenceLength})`
+      );
+    }
+  });
+}
 }

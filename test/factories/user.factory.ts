@@ -1,5 +1,6 @@
 import { PrismaClient } from '../../src/generated/prisma/client';
 import * as bcrypt from 'bcrypt';
+import { randomUUID } from 'crypto';
 
 export async function createTestUser(
   prisma: PrismaClient,
@@ -9,11 +10,13 @@ export async function createTestUser(
 
   return prisma.user.create({
     data: {
-      email: overrides.email || 'test@example.com',
+      email: overrides.email ?? `test-${randomUUID()}@example.com`,
       password: hashedPassword,
-      name: overrides.name || 'Test User',
-      maxPostsPerDay: overrides.maxPostsPerDay || 3,
+      name: overrides.name ?? 'Test User',
+      maxPostsPerDay: overrides.maxPostsPerDay ?? 3,
       ...overrides,
     },
   });
 }
+
+

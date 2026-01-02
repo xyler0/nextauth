@@ -58,8 +58,10 @@ describe('ToneService', () => {
 
     it('should validate sentence length', () => {
       const service_instance = service as any;
-      const longSentence = 'This is a very very very very very very very very very very very long sentence.';
-      
+      const longSentence = Array(50)
+      .fill('word')
+      .join(' ');
+
       expect(() => {
         service_instance.enforceRules(longSentence);
       }).toThrow('too long');
