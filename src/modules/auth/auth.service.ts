@@ -103,10 +103,10 @@ export class AuthService {
     return user;
   }
 
-  private generateToken(userId: string, email: string): string {
+  public generateToken(userId: string, email: string): string {
     return this.jwt.sign(
       { sub: userId, email },
-      { expiresIn: '7d' } // 7 day expiration
+      { expiresIn: '7d' }
     );
   }
 }
