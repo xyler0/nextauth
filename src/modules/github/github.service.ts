@@ -1,4 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { PrismaService } from '../../database/prisma.service';
+import { Octokit } from '@octokit/rest';
 import { GitHubFilter } from './github.filter';
 import { GitHubEvent } from './interfaces/github-event.interface';
 import { GitHubWebhookDto } from './dto/github-webhook.dto';
@@ -7,7 +10,11 @@ import { GitHubWebhookDto } from './dto/github-webhook.dto';
 export class GitHubService {
   private readonly logger = new Logger(GitHubService.name);
 
-  constructor(private readonly filter: GitHubFilter) {}
+  constructor(
+    private readonly filter: GitHubFilter,
+    private readonly prisma: PrismaService,
+    private readonly config: ConfigService,
+  ) {}
 
   processWebhook(payload: GitHubWebhookDto): string | null {
     const event = this.parsePayload(payload);
@@ -23,6 +30,59 @@ export class GitHubService {
     this.logger.log(`Generated summary: ${summary}`);
 
     return summary;
+  }
+
+  async getUserRepositories(userId: string): Promise<string[]> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        githubAccessToken: true,
+        githubUsername: true,
+      },
+    });
+
+    if (!user?.githubAccessToken) {
+      return [];
+    }
+
+    try {
+      const octokit = new Octokit({
+        auth: user.githubAccessToken,
+      });
+
+      const { data } = await octokit.rest.repos.listForAuthenticatedUser({
+        per_page: 100,
+        sort: 'updated',
+      });
+
+      return data.map((repo) => repo.full_name);
+    } catch (error) {
+      this.logger.error('Failed to fetch GitHub repositories', error);
+      return [];
+    }
+  }
+
+  async verifyToken(userId: string): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { githubAccessToken: true },
+    });
+
+    if (!user?.githubAccessToken) {
+      return false;
+    }
+
+    try {
+      const octokit = new Octokit({
+        auth: user.githubAccessToken,
+      });
+
+      await octokit.rest.users.getAuthenticated();
+      return true;
+    } catch (error) {
+      this.logger.error('GitHub token verification failed', error);
+      return false;
+    }
   }
 
   private parsePayload(payload: GitHubWebhookDto): GitHubEvent {

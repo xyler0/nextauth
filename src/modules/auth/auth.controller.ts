@@ -9,10 +9,12 @@ import { GitHubOAuthGuard } from '../../common/guards/github-oauth.guard';
 import { XOAuthGuard } from 'src/common/guards/x-oauth.guard';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
+  logger: any;
   constructor(
     private readonly auth: AuthService,
     private readonly configService: ConfigService,
