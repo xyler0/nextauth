@@ -30,18 +30,24 @@ model PostingStats {
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
-  password  String   
+  password  String   // Hashed
   name      String?
   
-  // X/Twitter credentials per user
-  xApiKey        String?
-  xApiSecret     String?
+  // GitHub OAuth
+  githubId          String?   @unique
+  githubAccessToken String?
+  githubUsername    String?
+  githubRepos       String[]
+  
+  // X/Twitter OAuth 
+  xId            String?   @unique
+  xUsername      String?
   xAccessToken   String?
   xAccessSecret  String?
   
-  // GitHub settings per user
-  githubUsername String?
-  githubRepos    String[] // Array of repo names to monitor
+  // Deprecated manual credentials
+  xApiKey        String?
+  xApiSecret     String?
   
   // Settings
   maxPostsPerDay Int      @default(3)
@@ -54,6 +60,8 @@ model User {
   updatedAt DateTime @updatedAt
   
   @@index([email])
+  @@index([githubId])
+  @@index([xId])
 }
 
 // Post model to link to user
