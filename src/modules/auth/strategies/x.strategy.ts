@@ -22,15 +22,15 @@ export class XStrategy extends PassportStrategy(Strategy, 'x') {
     private readonly prisma: PrismaService,
   ) {
     super({
-      authorizationURL: 'https://twitter.com/i/oauth2/authorize',
-      tokenURL: 'https://api.twitter.com/2/oauth2/token',
-      clientID: config.get<string>('TWITTER_CONSUMER_KEY')!,
-      clientSecret: config.get<string>('TWITTER_CONSUMER_SECRET')!,
-      callbackURL: config.get<string>('TWITTER_CALLBACK_URL')!,
-      scope: ['tweet.read', 'users.read', 'offline.access'],
-      pkce: true,
-      state: true,
-    });
+  authorizationURL: 'https://twitter.com/i/oauth2/authorize',
+  tokenURL: 'https://api.twitter.com/2/oauth2/token',
+  clientID: config.get<string>('TWITTER_CONSUMER_KEY')!,
+  clientSecret: config.get<string>('TWITTER_CONSUMER_SECRET')!,
+  callbackURL: config.get<string>('TWITTER_CALLBACK_URL')!,
+  scope: ['tweet.read', 'users.read'],
+  state: false,
+  pkce: false,
+});
   }
 
   async validate(

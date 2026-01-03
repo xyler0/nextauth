@@ -40,7 +40,7 @@ import { UserModule } from './modules/user/user.module';
       },
     ]),
     DatabaseModule,
- //   GitHubModule,
+    GitHubModule,
     HealthModule,
     JournalModule,
     XModule,

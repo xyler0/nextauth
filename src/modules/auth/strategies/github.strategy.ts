@@ -13,11 +13,13 @@ export class GitHubStrategy extends PassportStrategy(Strategy, 'github') {
     private prisma: PrismaService,
   ) {
     super({
-      clientID: config.get<string>('GITHUB_CLIENT_ID')!,
-      clientSecret: config.get<string>('GITHUB_CLIENT_SECRET')!,
-      callbackURL: config.get<string>('GITHUB_CALLBACK_URL')!,
-      scope: ['user:email', 'repo'],
-    });
+  clientID: config.get<string>('GITHUB_CLIENT_ID')!,
+  clientSecret: config.get<string>('GITHUB_CLIENT_SECRET')!,
+  callbackURL: config.get<string>('GITHUB_CALLBACK_URL')!,
+  scope: ['user:email', 'repo'],
+  state: false as any,
+});
+
   }
 
   async validate(
