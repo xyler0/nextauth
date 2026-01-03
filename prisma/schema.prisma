@@ -60,8 +60,6 @@ model User {
   updatedAt DateTime @updatedAt
   
   @@index([email])
-  @@index([githubId])
-  @@index([xId])
 }
 
 // Post model to link to user
