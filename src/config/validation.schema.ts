@@ -27,4 +27,16 @@ export const validationSchema = Joi.object({
   // JWT
   JWT_SECRET: Joi.string().required(),
 
+  GITHUB_CLIENT_ID: Joi.string().optional(),
+  GITHUB_CLIENT_SECRET: Joi.string().optional(),
+  GITHUB_CALLBACK_URL: Joi.string().optional(),
+  
+  // Twitter OAuth
+  TWITTER_CONSUMER_KEY: Joi.string().optional(),
+  TWITTER_CONSUMER_SECRET: Joi.string().optional(),
+  TWITTER_CALLBACK_URL: Joi.string().optional(),
+  
+  // Frontend
+  FRONTEND_URL: Joi.string().default('http://localhost:3000'),
+
 });
