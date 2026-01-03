@@ -39,11 +39,15 @@ export type UserMinAggregateOutputType = {
   email: string | null
   password: string | null
   name: string | null
-  xApiKey: string | null
-  xApiSecret: string | null
+  githubId: string | null
+  githubAccessToken: string | null
+  githubUsername: string | null
+  xId: string | null
+  xUsername: string | null
   xAccessToken: string | null
   xAccessSecret: string | null
-  githubUsername: string | null
+  xApiKey: string | null
+  xApiSecret: string | null
   maxPostsPerDay: number | null
   timezone: string | null
   createdAt: Date | null
@@ -55,11 +59,15 @@ export type UserMaxAggregateOutputType = {
   email: string | null
   password: string | null
   name: string | null
-  xApiKey: string | null
-  xApiSecret: string | null
+  githubId: string | null
+  githubAccessToken: string | null
+  githubUsername: string | null
+  xId: string | null
+  xUsername: string | null
   xAccessToken: string | null
   xAccessSecret: string | null
-  githubUsername: string | null
+  xApiKey: string | null
+  xApiSecret: string | null
   maxPostsPerDay: number | null
   timezone: string | null
   createdAt: Date | null
@@ -71,12 +79,16 @@ export type UserCountAggregateOutputType = {
   email: number
   password: number
   name: number
-  xApiKey: number
-  xApiSecret: number
-  xAccessToken: number
-  xAccessSecret: number
+  githubId: number
+  githubAccessToken: number
   githubUsername: number
   githubRepos: number
+  xId: number
+  xUsername: number
+  xAccessToken: number
+  xAccessSecret: number
+  xApiKey: number
+  xApiSecret: number
   maxPostsPerDay: number
   timezone: number
   createdAt: number
@@ -98,11 +110,15 @@ export type UserMinAggregateInputType = {
   email?: true
   password?: true
   name?: true
-  xApiKey?: true
-  xApiSecret?: true
+  githubId?: true
+  githubAccessToken?: true
+  githubUsername?: true
+  xId?: true
+  xUsername?: true
   xAccessToken?: true
   xAccessSecret?: true
-  githubUsername?: true
+  xApiKey?: true
+  xApiSecret?: true
   maxPostsPerDay?: true
   timezone?: true
   createdAt?: true
@@ -114,11 +130,15 @@ export type UserMaxAggregateInputType = {
   email?: true
   password?: true
   name?: true
-  xApiKey?: true
-  xApiSecret?: true
+  githubId?: true
+  githubAccessToken?: true
+  githubUsername?: true
+  xId?: true
+  xUsername?: true
   xAccessToken?: true
   xAccessSecret?: true
-  githubUsername?: true
+  xApiKey?: true
+  xApiSecret?: true
   maxPostsPerDay?: true
   timezone?: true
   createdAt?: true
@@ -130,12 +150,16 @@ export type UserCountAggregateInputType = {
   email?: true
   password?: true
   name?: true
-  xApiKey?: true
-  xApiSecret?: true
-  xAccessToken?: true
-  xAccessSecret?: true
+  githubId?: true
+  githubAccessToken?: true
   githubUsername?: true
   githubRepos?: true
+  xId?: true
+  xUsername?: true
+  xAccessToken?: true
+  xAccessSecret?: true
+  xApiKey?: true
+  xApiSecret?: true
   maxPostsPerDay?: true
   timezone?: true
   createdAt?: true
@@ -234,12 +258,16 @@ export type UserGroupByOutputType = {
   email: string
   password: string
   name: string | null
-  xApiKey: string | null
-  xApiSecret: string | null
-  xAccessToken: string | null
-  xAccessSecret: string | null
+  githubId: string | null
+  githubAccessToken: string | null
   githubUsername: string | null
   githubRepos: string[]
+  xId: string | null
+  xUsername: string | null
+  xAccessToken: string | null
+  xAccessSecret: string | null
+  xApiKey: string | null
+  xApiSecret: string | null
   maxPostsPerDay: number
   timezone: string
   createdAt: Date
@@ -274,12 +302,16 @@ export type UserWhereInput = {
   email?: Prisma.StringFilter<"User"> | string
   password?: Prisma.StringFilter<"User"> | string
   name?: Prisma.StringNullableFilter<"User"> | string | null
-  xApiKey?: Prisma.StringNullableFilter<"User"> | string | null
-  xApiSecret?: Prisma.StringNullableFilter<"User"> | string | null
-  xAccessToken?: Prisma.StringNullableFilter<"User"> | string | null
-  xAccessSecret?: Prisma.StringNullableFilter<"User"> | string | null
+  githubId?: Prisma.StringNullableFilter<"User"> | string | null
+  githubAccessToken?: Prisma.StringNullableFilter<"User"> | string | null
   githubUsername?: Prisma.StringNullableFilter<"User"> | string | null
   githubRepos?: Prisma.StringNullableListFilter<"User">
+  xId?: Prisma.StringNullableFilter<"User"> | string | null
+  xUsername?: Prisma.StringNullableFilter<"User"> | string | null
+  xAccessToken?: Prisma.StringNullableFilter<"User"> | string | null
+  xAccessSecret?: Prisma.StringNullableFilter<"User"> | string | null
+  xApiKey?: Prisma.StringNullableFilter<"User"> | string | null
+  xApiSecret?: Prisma.StringNullableFilter<"User"> | string | null
   maxPostsPerDay?: Prisma.IntFilter<"User"> | number
   timezone?: Prisma.StringFilter<"User"> | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -293,12 +325,16 @@ export type UserOrderByWithRelationInput = {
   email?: Prisma.SortOrder
   password?: Prisma.SortOrder
   name?: Prisma.SortOrderInput | Prisma.SortOrder
-  xApiKey?: Prisma.SortOrderInput | Prisma.SortOrder
-  xApiSecret?: Prisma.SortOrderInput | Prisma.SortOrder
-  xAccessToken?: Prisma.SortOrderInput | Prisma.SortOrder
-  xAccessSecret?: Prisma.SortOrderInput | Prisma.SortOrder
+  githubId?: Prisma.SortOrderInput | Prisma.SortOrder
+  githubAccessToken?: Prisma.SortOrderInput | Prisma.SortOrder
   githubUsername?: Prisma.SortOrderInput | Prisma.SortOrder
   githubRepos?: Prisma.SortOrder
+  xId?: Prisma.SortOrderInput | Prisma.SortOrder
+  xUsername?: Prisma.SortOrderInput | Prisma.SortOrder
+  xAccessToken?: Prisma.SortOrderInput | Prisma.SortOrder
+  xAccessSecret?: Prisma.SortOrderInput | Prisma.SortOrder
+  xApiKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  xApiSecret?: Prisma.SortOrderInput | Prisma.SortOrder
   maxPostsPerDay?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -310,36 +346,44 @@ export type UserOrderByWithRelationInput = {
 export type UserWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   email?: string
+  githubId?: string
+  xId?: string
   AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   password?: Prisma.StringFilter<"User"> | string
   name?: Prisma.StringNullableFilter<"User"> | string | null
-  xApiKey?: Prisma.StringNullableFilter<"User"> | string | null
-  xApiSecret?: Prisma.StringNullableFilter<"User"> | string | null
-  xAccessToken?: Prisma.StringNullableFilter<"User"> | string | null
-  xAccessSecret?: Prisma.StringNullableFilter<"User"> | string | null
+  githubAccessToken?: Prisma.StringNullableFilter<"User"> | string | null
   githubUsername?: Prisma.StringNullableFilter<"User"> | string | null
   githubRepos?: Prisma.StringNullableListFilter<"User">
+  xUsername?: Prisma.StringNullableFilter<"User"> | string | null
+  xAccessToken?: Prisma.StringNullableFilter<"User"> | string | null
+  xAccessSecret?: Prisma.StringNullableFilter<"User"> | string | null
+  xApiKey?: Prisma.StringNullableFilter<"User"> | string | null
+  xApiSecret?: Prisma.StringNullableFilter<"User"> | string | null
   maxPostsPerDay?: Prisma.IntFilter<"User"> | number
   timezone?: Prisma.StringFilter<"User"> | string
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   posts?: Prisma.PostListRelationFilter
   journalEntries?: Prisma.JournalEntryListRelationFilter
-}, "id" | "email">
+}, "id" | "email" | "githubId" | "xId">
 
 export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
   password?: Prisma.SortOrder
   name?: Prisma.SortOrderInput | Prisma.SortOrder
-  xApiKey?: Prisma.SortOrderInput | Prisma.SortOrder
-  xApiSecret?: Prisma.SortOrderInput | Prisma.SortOrder
-  xAccessToken?: Prisma.SortOrderInput | Prisma.SortOrder
-  xAccessSecret?: Prisma.SortOrderInput | Prisma.SortOrder
+  githubId?: Prisma.SortOrderInput | Prisma.SortOrder
+  githubAccessToken?: Prisma.SortOrderInput | Prisma.SortOrder
   githubUsername?: Prisma.SortOrderInput | Prisma.SortOrder
   githubRepos?: Prisma.SortOrder
+  xId?: Prisma.SortOrderInput | Prisma.SortOrder
+  xUsername?: Prisma.SortOrderInput | Prisma.SortOrder
+  xAccessToken?: Prisma.SortOrderInput | Prisma.SortOrder
+  xAccessSecret?: Prisma.SortOrderInput | Prisma.SortOrder
+  xApiKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  xApiSecret?: Prisma.SortOrderInput | Prisma.SortOrder
   maxPostsPerDay?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -359,12 +403,16 @@ export type UserScalarWhereWithAggregatesInput = {
   email?: Prisma.StringWithAggregatesFilter<"User"> | string
   password?: Prisma.StringWithAggregatesFilter<"User"> | string
   name?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
-  xApiKey?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
-  xApiSecret?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
-  xAccessToken?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
-  xAccessSecret?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  githubId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  githubAccessToken?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   githubUsername?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   githubRepos?: Prisma.StringNullableListFilter<"User">
+  xId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  xUsername?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  xAccessToken?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  xAccessSecret?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  xApiKey?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  xApiSecret?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   maxPostsPerDay?: Prisma.IntWithAggregatesFilter<"User"> | number
   timezone?: Prisma.StringWithAggregatesFilter<"User"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -376,12 +424,16 @@ export type UserCreateInput = {
   email: string
   password: string
   name?: string | null
-  xApiKey?: string | null
-  xApiSecret?: string | null
-  xAccessToken?: string | null
-  xAccessSecret?: string | null
+  githubId?: string | null
+  githubAccessToken?: string | null
   githubUsername?: string | null
   githubRepos?: Prisma.UserCreategithubReposInput | string[]
+  xId?: string | null
+  xUsername?: string | null
+  xAccessToken?: string | null
+  xAccessSecret?: string | null
+  xApiKey?: string | null
+  xApiSecret?: string | null
   maxPostsPerDay?: number
   timezone?: string
   createdAt?: Date | string
@@ -395,12 +447,16 @@ export type UserUncheckedCreateInput = {
   email: string
   password: string
   name?: string | null
-  xApiKey?: string | null
-  xApiSecret?: string | null
-  xAccessToken?: string | null
-  xAccessSecret?: string | null
+  githubId?: string | null
+  githubAccessToken?: string | null
   githubUsername?: string | null
   githubRepos?: Prisma.UserCreategithubReposInput | string[]
+  xId?: string | null
+  xUsername?: string | null
+  xAccessToken?: string | null
+  xAccessSecret?: string | null
+  xApiKey?: string | null
+  xApiSecret?: string | null
   maxPostsPerDay?: number
   timezone?: string
   createdAt?: Date | string
@@ -414,12 +470,16 @@ export type UserUpdateInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xApiSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xAccessSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubRepos?: Prisma.UserUpdategithubReposInput | string[]
+  xId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xAccessSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xApiSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxPostsPerDay?: Prisma.IntFieldUpdateOperationsInput | number
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -433,12 +493,16 @@ export type UserUncheckedUpdateInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xApiSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xAccessSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubRepos?: Prisma.UserUpdategithubReposInput | string[]
+  xId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xAccessSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xApiSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxPostsPerDay?: Prisma.IntFieldUpdateOperationsInput | number
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -452,12 +516,16 @@ export type UserCreateManyInput = {
   email: string
   password: string
   name?: string | null
-  xApiKey?: string | null
-  xApiSecret?: string | null
-  xAccessToken?: string | null
-  xAccessSecret?: string | null
+  githubId?: string | null
+  githubAccessToken?: string | null
   githubUsername?: string | null
   githubRepos?: Prisma.UserCreategithubReposInput | string[]
+  xId?: string | null
+  xUsername?: string | null
+  xAccessToken?: string | null
+  xAccessSecret?: string | null
+  xApiKey?: string | null
+  xApiSecret?: string | null
   maxPostsPerDay?: number
   timezone?: string
   createdAt?: Date | string
@@ -469,12 +537,16 @@ export type UserUpdateManyMutationInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xApiSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xAccessSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubRepos?: Prisma.UserUpdategithubReposInput | string[]
+  xId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xAccessSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xApiSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxPostsPerDay?: Prisma.IntFieldUpdateOperationsInput | number
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -486,12 +558,16 @@ export type UserUncheckedUpdateManyInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xApiSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xAccessSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubRepos?: Prisma.UserUpdategithubReposInput | string[]
+  xId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xAccessSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xApiSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxPostsPerDay?: Prisma.IntFieldUpdateOperationsInput | number
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -511,12 +587,16 @@ export type UserCountOrderByAggregateInput = {
   email?: Prisma.SortOrder
   password?: Prisma.SortOrder
   name?: Prisma.SortOrder
-  xApiKey?: Prisma.SortOrder
-  xApiSecret?: Prisma.SortOrder
-  xAccessToken?: Prisma.SortOrder
-  xAccessSecret?: Prisma.SortOrder
+  githubId?: Prisma.SortOrder
+  githubAccessToken?: Prisma.SortOrder
   githubUsername?: Prisma.SortOrder
   githubRepos?: Prisma.SortOrder
+  xId?: Prisma.SortOrder
+  xUsername?: Prisma.SortOrder
+  xAccessToken?: Prisma.SortOrder
+  xAccessSecret?: Prisma.SortOrder
+  xApiKey?: Prisma.SortOrder
+  xApiSecret?: Prisma.SortOrder
   maxPostsPerDay?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -532,11 +612,15 @@ export type UserMaxOrderByAggregateInput = {
   email?: Prisma.SortOrder
   password?: Prisma.SortOrder
   name?: Prisma.SortOrder
-  xApiKey?: Prisma.SortOrder
-  xApiSecret?: Prisma.SortOrder
+  githubId?: Prisma.SortOrder
+  githubAccessToken?: Prisma.SortOrder
+  githubUsername?: Prisma.SortOrder
+  xId?: Prisma.SortOrder
+  xUsername?: Prisma.SortOrder
   xAccessToken?: Prisma.SortOrder
   xAccessSecret?: Prisma.SortOrder
-  githubUsername?: Prisma.SortOrder
+  xApiKey?: Prisma.SortOrder
+  xApiSecret?: Prisma.SortOrder
   maxPostsPerDay?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -548,11 +632,15 @@ export type UserMinOrderByAggregateInput = {
   email?: Prisma.SortOrder
   password?: Prisma.SortOrder
   name?: Prisma.SortOrder
-  xApiKey?: Prisma.SortOrder
-  xApiSecret?: Prisma.SortOrder
+  githubId?: Prisma.SortOrder
+  githubAccessToken?: Prisma.SortOrder
+  githubUsername?: Prisma.SortOrder
+  xId?: Prisma.SortOrder
+  xUsername?: Prisma.SortOrder
   xAccessToken?: Prisma.SortOrder
   xAccessSecret?: Prisma.SortOrder
-  githubUsername?: Prisma.SortOrder
+  xApiKey?: Prisma.SortOrder
+  xApiSecret?: Prisma.SortOrder
   maxPostsPerDay?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -614,12 +702,16 @@ export type UserCreateWithoutPostsInput = {
   email: string
   password: string
   name?: string | null
-  xApiKey?: string | null
-  xApiSecret?: string | null
-  xAccessToken?: string | null
-  xAccessSecret?: string | null
+  githubId?: string | null
+  githubAccessToken?: string | null
   githubUsername?: string | null
   githubRepos?: Prisma.UserCreategithubReposInput | string[]
+  xId?: string | null
+  xUsername?: string | null
+  xAccessToken?: string | null
+  xAccessSecret?: string | null
+  xApiKey?: string | null
+  xApiSecret?: string | null
   maxPostsPerDay?: number
   timezone?: string
   createdAt?: Date | string
@@ -632,12 +724,16 @@ export type UserUncheckedCreateWithoutPostsInput = {
   email: string
   password: string
   name?: string | null
-  xApiKey?: string | null
-  xApiSecret?: string | null
-  xAccessToken?: string | null
-  xAccessSecret?: string | null
+  githubId?: string | null
+  githubAccessToken?: string | null
   githubUsername?: string | null
   githubRepos?: Prisma.UserCreategithubReposInput | string[]
+  xId?: string | null
+  xUsername?: string | null
+  xAccessToken?: string | null
+  xAccessSecret?: string | null
+  xApiKey?: string | null
+  xApiSecret?: string | null
   maxPostsPerDay?: number
   timezone?: string
   createdAt?: Date | string
@@ -666,12 +762,16 @@ export type UserUpdateWithoutPostsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xApiSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xAccessSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubRepos?: Prisma.UserUpdategithubReposInput | string[]
+  xId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xAccessSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xApiSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxPostsPerDay?: Prisma.IntFieldUpdateOperationsInput | number
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -684,12 +784,16 @@ export type UserUncheckedUpdateWithoutPostsInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xApiSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xAccessSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubRepos?: Prisma.UserUpdategithubReposInput | string[]
+  xId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xAccessSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xApiSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxPostsPerDay?: Prisma.IntFieldUpdateOperationsInput | number
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -702,12 +806,16 @@ export type UserCreateWithoutJournalEntriesInput = {
   email: string
   password: string
   name?: string | null
-  xApiKey?: string | null
-  xApiSecret?: string | null
-  xAccessToken?: string | null
-  xAccessSecret?: string | null
+  githubId?: string | null
+  githubAccessToken?: string | null
   githubUsername?: string | null
   githubRepos?: Prisma.UserCreategithubReposInput | string[]
+  xId?: string | null
+  xUsername?: string | null
+  xAccessToken?: string | null
+  xAccessSecret?: string | null
+  xApiKey?: string | null
+  xApiSecret?: string | null
   maxPostsPerDay?: number
   timezone?: string
   createdAt?: Date | string
@@ -720,12 +828,16 @@ export type UserUncheckedCreateWithoutJournalEntriesInput = {
   email: string
   password: string
   name?: string | null
-  xApiKey?: string | null
-  xApiSecret?: string | null
-  xAccessToken?: string | null
-  xAccessSecret?: string | null
+  githubId?: string | null
+  githubAccessToken?: string | null
   githubUsername?: string | null
   githubRepos?: Prisma.UserCreategithubReposInput | string[]
+  xId?: string | null
+  xUsername?: string | null
+  xAccessToken?: string | null
+  xAccessSecret?: string | null
+  xApiKey?: string | null
+  xApiSecret?: string | null
   maxPostsPerDay?: number
   timezone?: string
   createdAt?: Date | string
@@ -754,12 +866,16 @@ export type UserUpdateWithoutJournalEntriesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xApiSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xAccessSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubRepos?: Prisma.UserUpdategithubReposInput | string[]
+  xId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xAccessSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xApiSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxPostsPerDay?: Prisma.IntFieldUpdateOperationsInput | number
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -772,12 +888,16 @@ export type UserUncheckedUpdateWithoutJournalEntriesInput = {
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xApiSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xAccessSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubRepos?: Prisma.UserUpdategithubReposInput | string[]
+  xId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xAccessSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xApiSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxPostsPerDay?: Prisma.IntFieldUpdateOperationsInput | number
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -830,12 +950,16 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   email?: boolean
   password?: boolean
   name?: boolean
-  xApiKey?: boolean
-  xApiSecret?: boolean
-  xAccessToken?: boolean
-  xAccessSecret?: boolean
+  githubId?: boolean
+  githubAccessToken?: boolean
   githubUsername?: boolean
   githubRepos?: boolean
+  xId?: boolean
+  xUsername?: boolean
+  xAccessToken?: boolean
+  xAccessSecret?: boolean
+  xApiKey?: boolean
+  xApiSecret?: boolean
   maxPostsPerDay?: boolean
   timezone?: boolean
   createdAt?: boolean
@@ -850,12 +974,16 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   email?: boolean
   password?: boolean
   name?: boolean
-  xApiKey?: boolean
-  xApiSecret?: boolean
-  xAccessToken?: boolean
-  xAccessSecret?: boolean
+  githubId?: boolean
+  githubAccessToken?: boolean
   githubUsername?: boolean
   githubRepos?: boolean
+  xId?: boolean
+  xUsername?: boolean
+  xAccessToken?: boolean
+  xAccessSecret?: boolean
+  xApiKey?: boolean
+  xApiSecret?: boolean
   maxPostsPerDay?: boolean
   timezone?: boolean
   createdAt?: boolean
@@ -867,12 +995,16 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   email?: boolean
   password?: boolean
   name?: boolean
-  xApiKey?: boolean
-  xApiSecret?: boolean
-  xAccessToken?: boolean
-  xAccessSecret?: boolean
+  githubId?: boolean
+  githubAccessToken?: boolean
   githubUsername?: boolean
   githubRepos?: boolean
+  xId?: boolean
+  xUsername?: boolean
+  xAccessToken?: boolean
+  xAccessSecret?: boolean
+  xApiKey?: boolean
+  xApiSecret?: boolean
   maxPostsPerDay?: boolean
   timezone?: boolean
   createdAt?: boolean
@@ -884,19 +1016,23 @@ export type UserSelectScalar = {
   email?: boolean
   password?: boolean
   name?: boolean
-  xApiKey?: boolean
-  xApiSecret?: boolean
-  xAccessToken?: boolean
-  xAccessSecret?: boolean
+  githubId?: boolean
+  githubAccessToken?: boolean
   githubUsername?: boolean
   githubRepos?: boolean
+  xId?: boolean
+  xUsername?: boolean
+  xAccessToken?: boolean
+  xAccessSecret?: boolean
+  xApiKey?: boolean
+  xApiSecret?: boolean
   maxPostsPerDay?: boolean
   timezone?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "password" | "name" | "xApiKey" | "xApiSecret" | "xAccessToken" | "xAccessSecret" | "githubUsername" | "githubRepos" | "maxPostsPerDay" | "timezone" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "password" | "name" | "githubId" | "githubAccessToken" | "githubUsername" | "githubRepos" | "xId" | "xUsername" | "xAccessToken" | "xAccessSecret" | "xApiKey" | "xApiSecret" | "maxPostsPerDay" | "timezone" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   posts?: boolean | Prisma.User$postsArgs<ExtArgs>
   journalEntries?: boolean | Prisma.User$journalEntriesArgs<ExtArgs>
@@ -916,12 +1052,16 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     email: string
     password: string
     name: string | null
-    xApiKey: string | null
-    xApiSecret: string | null
-    xAccessToken: string | null
-    xAccessSecret: string | null
+    githubId: string | null
+    githubAccessToken: string | null
     githubUsername: string | null
     githubRepos: string[]
+    xId: string | null
+    xUsername: string | null
+    xAccessToken: string | null
+    xAccessSecret: string | null
+    xApiKey: string | null
+    xApiSecret: string | null
     maxPostsPerDay: number
     timezone: string
     createdAt: Date
@@ -1355,12 +1495,16 @@ export interface UserFieldRefs {
   readonly email: Prisma.FieldRef<"User", 'String'>
   readonly password: Prisma.FieldRef<"User", 'String'>
   readonly name: Prisma.FieldRef<"User", 'String'>
-  readonly xApiKey: Prisma.FieldRef<"User", 'String'>
-  readonly xApiSecret: Prisma.FieldRef<"User", 'String'>
-  readonly xAccessToken: Prisma.FieldRef<"User", 'String'>
-  readonly xAccessSecret: Prisma.FieldRef<"User", 'String'>
+  readonly githubId: Prisma.FieldRef<"User", 'String'>
+  readonly githubAccessToken: Prisma.FieldRef<"User", 'String'>
   readonly githubUsername: Prisma.FieldRef<"User", 'String'>
   readonly githubRepos: Prisma.FieldRef<"User", 'String[]'>
+  readonly xId: Prisma.FieldRef<"User", 'String'>
+  readonly xUsername: Prisma.FieldRef<"User", 'String'>
+  readonly xAccessToken: Prisma.FieldRef<"User", 'String'>
+  readonly xAccessSecret: Prisma.FieldRef<"User", 'String'>
+  readonly xApiKey: Prisma.FieldRef<"User", 'String'>
+  readonly xApiSecret: Prisma.FieldRef<"User", 'String'>
   readonly maxPostsPerDay: Prisma.FieldRef<"User", 'Int'>
   readonly timezone: Prisma.FieldRef<"User", 'String'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
