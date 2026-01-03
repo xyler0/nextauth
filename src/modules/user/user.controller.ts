@@ -6,6 +6,11 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
+  Delete,
+  Req,
+  Res,
+  UseGuards,
+  NotFoundException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -19,6 +24,12 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { UpdateXCredentialsDto } from './dto/update-x-credentials.dto';
 import { UpdateGitHubSettingsDto } from './dto/update-github-settings.dto';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
+import { LinkAccountResponseDto } from './dto/link-account-response.dto';
+import { AuthService } from '../auth/auth.service';
+import { ConfigService } from '@nestjs/config';
+import { GitHubOAuthGuard } from 'src/common/guards/github-oauth.guard';
+import { XOAuthGuard } from 'src/common/guards/x-oauth.guard';
+import { Response } from 'express';
 
 @ApiTags('user')
 @Controller('user')
@@ -29,6 +40,8 @@ export class UserController {
   constructor(
     private readonly prisma: PrismaService,
     private readonly x: XService,
+    private readonly auth: AuthService,
+    private readonly config: ConfigService,
   ) {}
 
   @Get('profile')
@@ -46,15 +59,21 @@ export class UserController {
         githubUsername: true,
         githubRepos: true,
         createdAt: true,
-        // Don't return credentials
-        xApiKey: false,
-        xApiSecret: false,
-        xAccessToken: false,
-        xAccessSecret: false,
+        githubId: true,
+        xId: true,
       },
     });
+     if (!profile) {
+      throw new NotFoundException('User not found.');
+    }
 
-    return profile;
+    return {
+      ...profile,
+      linkedAccounts: {
+        github: !!profile.githubId,
+        twitter: !!profile.xId,
+      },
+    };
   }
 
   @Put('settings')
@@ -125,5 +144,134 @@ export class UserController {
   async verifyXCredentials(@CurrentUser() user: any) {
     const isValid = await this.x.verifyCredentials(user.id);
     return { valid: isValid };
+  }
+   @Get('link/github')
+  @UseGuards(GitHubOAuthGuard)
+  @ApiOperation({ summary: 'Link GitHub account via OAuth' })
+  @ApiResponse({ status: 302, description: 'Redirects to GitHub' })
+  async linkGitHub() {
+    // Guard handles redirect
+  }
+
+  @Get('link/github/callback')
+  @UseGuards(GitHubOAuthGuard)
+  @ApiOperation({ summary: 'GitHub link callback' })
+  async linkGitHubCallback(@Req() req: any, @Res() res: Response) {
+    const user = req.user;
+    
+    const frontendUrl = this.config.get<string>('FRONTEND_URL');
+    res.redirect(`${frontendUrl}/settings?linked=github&success=true`);
+  }
+
+  @Get('link/twitter')
+  @UseGuards(XOAuthGuard)
+  @ApiOperation({ summary: 'Link Twitter account via OAuth' })
+  @ApiResponse({ status: 302, description: 'Redirects to Twitter' })
+  async linkTwitter() {
+  }
+
+  @Get('link/twitter/callback')
+  @UseGuards(XOAuthGuard)
+  @ApiOperation({ summary: 'Twitter link callback' })
+  async linkTwitterCallback(@Req() req: any, @Res() res: Response) {
+    const user = req.user;
+    
+    const frontendUrl = this.config.get<string>('FRONTEND_URL');
+    res.redirect(`${frontendUrl}/settings?linked=twitter&success=true`);
+  }
+
+  @Delete('link/github')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Unlink GitHub account' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'GitHub account unlinked',
+    type: LinkAccountResponseDto,
+  })
+  async unlinkGitHub(@CurrentUser() user: any): Promise<LinkAccountResponseDto> {
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        githubId: null,
+        githubAccessToken: null,
+        githubUsername: null,
+        githubRepos: [],
+      },
+    });
+
+    this.logger.log(`GitHub account unlinked for user ${user.id}`);
+
+    return {
+      message: 'GitHub account unlinked successfully',
+      linked: false,
+      provider: 'github',
+    };
+  }
+
+  @Delete('link/twitter')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Unlink Twitter account' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Twitter account unlinked',
+    type: LinkAccountResponseDto,
+  })
+  async unlinkTwitter(@CurrentUser() user: any): Promise<LinkAccountResponseDto> {
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        xId: null,
+        xUsername: null,
+        xAccessToken: null,
+        xAccessSecret: null,
+      },
+    });
+
+    this.logger.log(`Twitter account unlinked for user ${user.id}`);
+
+    return {
+      message: 'Twitter account unlinked successfully',
+      linked: false,
+      provider: 'twitter',
+    };
+  }
+
+  @Get('connections')
+  @ApiOperation({ summary: 'Get linked account status' })
+  @ApiResponse({
+    status: 200,
+    description: 'Linked accounts',
+    schema: {
+      example: {
+        github: { linked: true, username: 'johndoe' },
+        twitter: { linked: true, username: '@johndoe' },
+      },
+    },
+  })
+  async getConnections(@CurrentUser() user: any) {
+    const userData = await this.prisma.user.findUnique({
+      where: { id: user.id },
+      select: {
+        githubId: true,
+        githubUsername: true,
+        xId: true,
+        xUsername: true,
+      },
+    });
+
+     if (!userData) {
+      throw new NotFoundException('User not found.');
+    }
+
+    return {
+      github: {
+        linked: !!userData.githubId,
+        username: userData.githubUsername,
+      },
+      twitter: {
+        linked: !!userData.xId,
+        username: userData.xUsername,
+      },
+    };
   }
 }
