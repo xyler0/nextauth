@@ -77,4 +77,23 @@ export class AuthController {
      const frontendUrl = this.configService.get<string>('FRONTEND_URL'); 
      res.redirect(`${frontendUrl}/auth/callback?token=${token}&provider=twitter`);
    }
+   @Post('logout')
+   @HttpCode(HttpStatus.OK)
+   @ApiOperation({ 
+     summary: 'Logout user',
+     description: 'Client should discard the JWT token',
+   })
+   @ApiResponse({ 
+     status: 200, 
+     description: 'Logout successful',
+   })
+   async logout(@CurrentUser() user: any) {
+     this.logger.log(`User ${user.id} logged out`);
+     
+     return {
+       message: 'Logged out successfully',
+       // Note: JWT is stateless, so client must discard the token
+       // For enhanced security, implement token blacklist if needed
+     };
+   }
 }
