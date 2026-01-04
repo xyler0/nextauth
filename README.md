@@ -1,98 +1,348 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# X Poster API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+> Automated X/Twitter posting from GitHub commits and journal entries with AI-powered tone enforcement.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=flat&logo=nestjs&logoColor=white)](https://nestjs.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
 
-## Description
+## Features
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **Multi-Auth System** - Email/password, GitHub OAuth, Twitter OAuth
+- **Intelligent Journal Processing** - AI-powered text scoring and extraction
+- **GitHub Integration** - Auto-post on commits, PRs, releases
+- **Tone Enforcement** - Consistent voice across all posts
+- **Daily Limits & Stats** - Control posting frequency
+- **Production Ready** - Health checks, logging, monitoring
 
-## Project setup
+## Quick Start
 
-```bash
-$ npm install
-```
+### Prerequisites
 
-## Compile and run the project
+- Node.js 18+
+- PostgreSQL 14+
+- Docker & Docker Compose (optional)
+
+### Installation
 
 ```bash
-# development
-$ npm run start
+# Clone repository
+git clone https://github.com/yourusername/x-poster.git
+cd x-poster
 
-# watch mode
-$ npm run start:dev
+# Install dependencies
+npm install
 
-# production mode
-$ npm run start:prod
+# Setup environment
+cp .env.example .env
+# Edit .env with your credentials
+
+# Setup database
+npx prisma migrate dev
+npx prisma generate
+
+# Start development server
+npm run start:dev
 ```
 
-## Run tests
+Visit `http://localhost:3000/api/docs` for interactive API documentation.
+
+## Docker Deployment
 
 ```bash
-# unit tests
-$ npm run test
+# Start all services
+docker-compose up -d
 
-# e2e tests
-$ npm run test:e2e
+# View logs
+docker-compose logs -f api
 
-# test coverage
-$ npm run test:cov
+# Stop services
+docker-compose down
 ```
+
+Services:
+- API: `http://localhost:3000`
+- PostgreSQL: `localhost:5432`
+- Swagger Docs: `http://localhost:3000/api/docs`
+
+## Configuration
+
+### Required Environment Variables
+
+```env
+# Database
+DATABASE_URL="postgresql://user:pass@localhost:5432/xposter"
+
+# JWT Authentication
+JWT_SECRET="your-secure-secret-here"
+
+# OpenAI (for tone enforcement)
+OPENAI_API_KEY="sk-..."
+
+# GitHub OAuth
+GITHUB_CLIENT_ID="your-github-client-id"
+GITHUB_CLIENT_SECRET="your-github-client-secret"
+GITHUB_CALLBACK_URL="http://localhost:3000/auth/github/callback"
+
+# Twitter OAuth
+TWITTER_CONSUMER_KEY="your-twitter-consumer-key"
+TWITTER_CONSUMER_SECRET="your-twitter-consumer-secret"
+TWITTER_CALLBACK_URL="http://localhost:3000/auth/twitter/callback"
+
+# Application
+NODE_ENV="development"
+PORT=3000
+FRONTEND_URL="http://localhost:3000"
+MAX_POSTS_PER_DAY=3
+```
+
+### Optional Variables
+
+```env
+# X/Twitter (manual credentials - deprecated, use OAuth)
+X_DRY_RUN=true
+X_API_KEY=""
+X_API_SECRET=""
+
+# GitHub Webhooks
+GITHUB_WEBHOOK_SECRET="your-webhook-secret"
+
+# Monitoring
+SCHEDULER_ENABLED=true
+```
+
+## API Documentation
+
+### Authentication
+
+#### Traditional Auth
+```bash
+# Signup
+curl -X POST http://localhost:3000/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"StrongP@ss123","name":"John"}'
+
+# Login
+curl -X POST http://localhost:3000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"StrongP@ss123"}'
+```
+
+#### OAuth
+```bash
+# GitHub OAuth - Visit in browser
+http://localhost:3000/auth/github
+
+# Twitter OAuth - Visit in browser
+http://localhost:3000/auth/twitter
+```
+
+### Journal Management
+
+```bash
+# Create journal entry
+curl -X POST http://localhost:3000/journal \
+  -H "Authorization: Bearer YOUR_JWT" \
+  -H "Content-Type: application/json" \
+  -d '{"content":"Your journal entry..."}'
+
+# Process and post
+curl -X POST http://localhost:3000/journal/process-and-post \
+  -H "Authorization: Bearer YOUR_JWT" \
+  -H "Content-Type: application/json" \
+  -d '{"entryId":"ENTRY_ID"}'
+```
+
+### Account Management
+
+```bash
+# Link GitHub (visit in browser with JWT)
+http://localhost:3000/user/link/github
+
+# Get connections
+curl http://localhost:3000/user/connections \
+  -H "Authorization: Bearer YOUR_JWT"
+
+# List repositories
+curl http://localhost:3000/user/github/repositories \
+  -H "Authorization: Bearer YOUR_JWT"
+
+# Select repos to monitor
+curl -X PUT http://localhost:3000/user/github/repositories \
+  -H "Authorization: Bearer YOUR_JWT" \
+  -H "Content-Type: application/json" \
+  -d '{"repos":["username/repo1","username/repo2"]}'
+```
+
+## Architecture
+
+```
+x-poster/
+├── src/
+│   ├── modules/
+│   │   ├── auth/           # JWT + OAuth strategies
+│   │   ├── journal/        # Journal processing
+│   │   ├── github/         # GitHub webhooks
+│   │   ├── posts/          # Post management
+│   │   ├── tone/           # AI tone enforcement
+│   │   ├── composer/       # Post orchestration
+│   │   ├── x/              # Twitter integration
+│   │   ├── store/          # Database operations
+│   │   └── scheduler/      # Cron jobs
+│   ├── common/             # Guards, decorators
+│   ├── config/             # Configuration
+│   └── database/           # Prisma client
+├── prisma/
+│   ├── schema.prisma       # Database schema
+│   └── migrations/         # Migration history
+├── test/                   # E2E and unit tests
+└── docs/                   # Documentation
+```
+
+## Testing
+
+```bash
+# Run all tests
+npm test
+
+# Unit tests only
+npm run test:unit
+
+# E2E tests
+npm run test:e2e
+
+# Test coverage
+npm run test:cov
+
+# Watch mode
+npm run test:watch
+```
+
+## 🔒 Security Features
+
+- JWT authentication with 7-day expiration
+- bcrypt password hashing (10 rounds)
+- GitHub webhook signature verification
+- Rate limiting (10 req/min globally)
+- Input validation on all DTOs
+- Helmet security headers
+- CORS with origin whitelist
+- OAuth state management
+- SQL injection protection (Prisma)
+
+## Monitoring
+
+### Health Checks
+
+```bash
+# API health
+curl http://localhost:3000/health
+
+# Response
+{
+  "status": "ok",
+  "info": {
+    "database": { "status": "up" },
+    "memory_heap": { "status": "up" }
+  }
+}
+```
+
+### Logging
+
+Logs include:
+- Request/response times
+- OAuth flows
+- Post creation
+- GitHub webhooks
+- Error tracking
+
+## GitHub Webhook Setup
+
+1. Go to repository → Settings → Webhooks
+2. Add webhook URL: `https://your-domain.com/webhooks/github`
+3. Content type: `application/json`
+4. Secret: Your `GITHUB_WEBHOOK_SECRET`
+5. Select events: Push, Pull Request, Release
+6. Save webhook
+
+## OAuth Setup
+
+### GitHub OAuth
+
+1. Visit https://github.com/settings/developers
+2. Create OAuth App
+3. Set callback: `http://localhost:3000/auth/github/callback`
+4. Copy Client ID and Secret to `.env`
+
+### Twitter OAuth
+
+1. Visit https://developer.twitter.com/en/portal/dashboard
+2. Create app with OAuth 1.0a
+3. Enable "Read and write" permissions
+4. Set callback: `http://localhost:3000/auth/twitter/callback`
+5. Copy Consumer Key and Secret to `.env`
+
+**See [docs/OAUTH_SETUP.md](./docs/OAUTH_SETUP.md) for detailed instructions.**
 
 ## Deployment
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Docker Deployment
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# Build and start
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Scale API instances
+docker-compose up -d --scale api=3
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Environment-Specific Configs
 
-## Resources
+**Development:**
+```env
+NODE_ENV=development
+X_DRY_RUN=true
+SCHEDULER_ENABLED=false
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+**Production:**
+```env
+NODE_ENV=production
+X_DRY_RUN=false
+SCHEDULER_ENABLED=true
+DATABASE_URL="postgresql://..."
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## Contributing
 
-## Support
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing`)
+5. Open Pull Request
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### Development Workflow
 
-## Stay in touch
+```bash
+# Install dependencies
+npm install
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+# Run migrations
+npx prisma migrate dev
 
-## License
+# Start dev server
+npm run start:dev
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+# Run tests
+npm run test:watch
+
+# Lint code
+npm run lint
+
+# Format code
+npm run format
