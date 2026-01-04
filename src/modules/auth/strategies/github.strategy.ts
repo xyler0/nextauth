@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-github2';
 import { ConfigService } from '@nestjs/config';
@@ -13,16 +13,17 @@ export class GitHubStrategy extends PassportStrategy(Strategy, 'github') {
     private prisma: PrismaService,
   ) {
     super({
-  clientID: config.get<string>('GITHUB_CLIENT_ID')!,
-  clientSecret: config.get<string>('GITHUB_CLIENT_SECRET')!,
-  callbackURL: config.get<string>('GITHUB_CALLBACK_URL')!,
-  scope: ['user:email', 'repo'],
-  state: false as any,
-});
-
-  }
+       clientID: config.get<string>('GITHUB_CLIENT_ID')!,
+          clientSecret: config.get<string>('GITHUB_CLIENT_SECRET')!,
+          callbackURL: config.get<string>('GITHUB_CALLBACK_URL')!,
+          scope: ['user:email', 'repo'],
+          passReqToCallback: true,
+          //state: false as any,
+        });
+     }
 
   async validate(
+    req: any,
     accessToken: string,
     refreshToken: string,
     profile: any,
@@ -31,7 +32,24 @@ export class GitHubStrategy extends PassportStrategy(Strategy, 'github') {
 
     const email = profile.emails?.[0]?.value;
     if (!email) {
-      throw new Error('No email provided by GitHub');
+      throw new UnauthorizedException('No email provided by GitHub');
+    }
+
+    // Check if this is account linking (user is already authenticated)
+    const existingUserId = req.session?.userId;
+
+    if (existingUserId) {
+      // Link GitHub to existing authenticated user
+      const user = await this.prisma.user.update({
+        where: { id: existingUserId },
+        data: {
+          githubId: profile.id,
+          githubAccessToken: accessToken,
+          githubUsername: profile.username,
+        },
+      });
+      this.logger.log(`Linked GitHub to user: ${user.id}`);
+      return user;
     }
 
     // Find or create user

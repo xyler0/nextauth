@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-oauth2';
 import { ConfigService } from '@nestjs/config';
@@ -22,96 +22,85 @@ export class XStrategy extends PassportStrategy(Strategy, 'x') {
     private readonly prisma: PrismaService,
   ) {
     super({
-  authorizationURL: 'https://twitter.com/i/oauth2/authorize',
-  tokenURL: 'https://api.twitter.com/2/oauth2/token',
-  clientID: config.get<string>('TWITTER_CONSUMER_KEY')!,
-  clientSecret: config.get<string>('TWITTER_CONSUMER_SECRET')!,
-  callbackURL: config.get<string>('TWITTER_CALLBACK_URL')!,
-  scope: ['tweet.read', 'users.read'],
-  state: false,
-  pkce: false,
-});
-  }
-
-  async validate(
-    accessToken: string,
-    refreshToken: string,
-  ): Promise<any> {
-    // Fetch X user profile
-    const { data } = await axios.get<TwitterUserResponse>(
-      'https://api.twitter.com/2/users/me',
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
-    );
-
-    const xProfile = data?.data;
-    if (!xProfile?.id) {
-      throw new Error('Invalid X user profile');
+      authorizationURL: 'https://twitter.com/i/oauth2/authorize',
+      tokenURL: 'https://api.twitter.com/2/oauth2/token',
+      clientID: config.get<string>('TWITTER_CONSUMER_KEY')!,
+      clientSecret: config.get<string>('TWITTER_CONSUMER_SECRET')!,
+      callbackURL: config.get<string>('TWITTER_CALLBACK_URL')!,
+      scope: ['tweet.read', 'users.read'],
+      state: true,
+      pkce: true,
+      passReqToCallback: true,
+     });
     }
+    async validate(
+  req: any,
+  accessToken: string,
+  //refreshToken: string,
+): Promise<any> {
+  // 1. Fetch X profile
+  const { data } = await axios.get<TwitterUserResponse>(
+    'https://api.twitter.com/2/users/me',
+    {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      params: { 'user.fields': 'id,name,username' },
+    },
+  );
 
-    this.logger.log(`X OAuth callback for user: ${xProfile.username}`);
+  const xId = data.data.id;
+  const username = data.data.username;
 
-    // Find or create user
-    let user = await this.prisma.user.findUnique({
-      where: { xId: xProfile.id },
+  // 2. Decode intent from OAuth state
+  const linkUserId = req.oauthState?.linkUserId ?? null;
+
+  // ACCOUNT LINKING (explicit)
+  if (linkUserId) {
+    const alreadyLinked = await this.prisma.user.findFirst({
+      where: { xId, NOT: { id: linkUserId } },
     });
 
-    if (!user) {
-      // Try linking by email-style placeholder
-      const pseudoEmail = `${xProfile.id}@x.oauth`;
-
-      user = await this.prisma.user.findUnique({
-        where: { email: pseudoEmail },
-      });
-
-      if (user) {
-        // Link X account to existing user
-        user = await this.prisma.user.update({
-          where: { id: user.id },
-          data: {
-            xId: xProfile.id,
-            xUsername: xProfile.username,
-            xAccessToken: accessToken,
-            xAccessSecret: refreshToken ?? null,
-          },
-        });
-
-        this.logger.log(
-          `Linked X account to existing user: ${user.id}`,
-        );
-      } else {
-        // Create new OAuth-only user
-        user = await this.prisma.user.create({
-          data: {
-            email: pseudoEmail,
-            password: '',
-            name: xProfile.username,
-            xId: xProfile.id,
-            xUsername: xProfile.username,
-            xAccessToken: accessToken,
-            xAccessSecret: refreshToken ?? null,
-          },
-        });
-
-        this.logger.log(
-          `Created new user from X OAuth: ${user.id}`,
-        );
-      }
-    } else {
-      // Update existing X-linked user
-      user = await this.prisma.user.update({
-        where: { id: user.id },
-        data: {
-          xUsername: xProfile.username,
-          xAccessToken: accessToken,
-          xAccessSecret: refreshToken ?? null,
-        },
-      });
+    if (alreadyLinked) {
+      throw new UnauthorizedException('X account already linked');
     }
 
-    return user;
+    return this.prisma.user.update({
+      where: { id: linkUserId },
+      data: {
+        xId,
+        xUsername: username,
+        xAccessToken: accessToken,
+      //xRefreshToken: refreshToken ?? null,
+      },
+    });
   }
+
+  // LOGIN (existing X user)
+  const existingUser = await this.prisma.user.findUnique({
+    where: { xId },
+  });
+
+  if (existingUser) {
+    return this.prisma.user.update({
+      where: { id: existingUser.id },
+      data: {
+        xUsername: username,
+        xAccessToken: accessToken,
+      //xRefreshToken: refreshToken ?? null,
+      },
+    });
+  }
+
+  // SIGNUP (new X user)
+  return this.prisma.user.create({
+    data: {
+      email: `${xId}@x.oauth`,
+      password: '',
+      name: username,
+      xId,
+      xUsername: username,
+      xAccessToken: accessToken,
+    //xRefreshToken: refreshToken ?? null,
+    },
+  });
+}
 }
