@@ -43,7 +43,7 @@ Visit: http://localhost:3000/user/link/github
 1. Go to https://developer.twitter.com/en/portal/dashboard
 2. Create a new project and app
 3. Go to app settings → "User authentication settings"
-4. Configure OAuth 1.0a:
+4. Configure OAuth:
    - **App permissions**: Read and write
    - **Type of App**: Web App
    - **Callback URL**: `http://localhost:3000/auth/twitter/callback`
