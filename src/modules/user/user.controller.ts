@@ -30,6 +30,8 @@ import { ConfigService } from '@nestjs/config';
 import { GitHubOAuthGuard } from 'src/common/guards/github-oauth.guard';
 import { XOAuthGuard } from 'src/common/guards/x-oauth.guard';
 import { Response } from 'express';
+import { GitHubService } from '../github/github.service';
+import { SelectReposDto } from './dto/select-repos.dto';
 
 @ApiTags('user')
 @Controller('user')
@@ -42,6 +44,7 @@ export class UserController {
     private readonly x: XService,
     private readonly auth: AuthService,
     private readonly config: ConfigService,
+    private readonly github: GitHubService,
   ) {}
 
   @Get('profile')
@@ -273,5 +276,71 @@ export class UserController {
         username: userData.xUsername,
       },
     };
+  }
+   @Get('github/repositories')
+  @ApiOperation({ 
+    summary: 'Get user GitHub repositories',
+    description: 'Fetch all repositories from linked GitHub account',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of repositories',
+    schema: {
+      example: {
+        repositories: ['username/repo1', 'username/repo2'],
+        monitored: ['username/repo1'],
+      },
+    },
+  })
+  async getGitHubRepositories(@CurrentUser() user: any) {
+    const repositories = await this.github.getUserRepositories(user.id);
+    
+    const userData = await this.prisma.user.findUnique({
+      where: { id: user.id },
+      select: { githubRepos: true },
+    });
+
+     if (!userData) {
+      throw new NotFoundException('User not found.');
+    }
+
+    return {
+      repositories,
+      monitored: userData.githubRepos || [],
+    };
+  }
+
+  @Put('github/repositories')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ 
+    summary: 'Select repositories to monitor',
+    description: 'Choose which repositories should trigger posts',
+  })
+  @ApiResponse({ status: 200, description: 'Repositories updated' })
+  async selectRepositories(
+    @Body() dto: SelectReposDto,
+    @CurrentUser() user: any,
+  ) {
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        githubRepos: dto.repos,
+      },
+    });
+
+    this.logger.log(`Updated monitored repos for user ${user.id}: ${dto.repos.join(', ')}`);
+
+    return {
+      message: 'Repositories updated successfully',
+      monitored: dto.repos,
+    };
+  }
+
+  @Get('github/verify')
+  @ApiOperation({ summary: 'Verify GitHub connection' })
+  @ApiResponse({ status: 200, description: 'Verification result' })
+  async verifyGitHub(@CurrentUser() user: any) {
+    const isValid = await this.github.verifyToken(user.id);
+    return { valid: isValid };
   }
 }
