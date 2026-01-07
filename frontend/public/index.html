@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>X Poster - OAuth Test</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 32px;
+    }
+    
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 16px;
+    }
+    
+    .section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 10px;
+    }
+    
+    .section h2 {
+      color: #333;
+      margin-bottom: 15px;
+      font-size: 20px;
+    }
+    
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+      margin: 5px;
+    }
+    
+    .btn-github {
+      background: #24292e;
+      color: white;
+    }
+    
+    .btn-github:hover {
+      background: #1a1e21;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    .btn-twitter {
+      background: #1DA1F2;
+      color: white;
+    }
+    
+    .btn-twitter:hover {
+      background: #1a8cd8;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(29, 161, 242, 0.3);
+    }
+    
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+    
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+    
+    .status {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-left: 10px;
+    }
+    
+    .status-connected {
+      background: #d4edda;
+      color: #155724;
+    }
+    
+    .status-disconnected {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    
+    .user-info {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .user-info p {
+      margin: 5px 0;
+      color: #555;
+    }
+    
+    .user-info strong {
+      color: #333;
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+    
+    .alert {
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .alert-error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .repo-list {
+      max-height: 200px;
+      overflow-y: auto;
+      margin: 10px 0;
+    }
+    
+    .repo-item {
+      padding: 8px;
+      margin: 5px 0;
+      background: white;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .repo-item input {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>X Poster</h1>
+    <p class="subtitle">OAuth Testing Dashboard</p>
+    
+    <div id="alert" class="hidden"></div>
+    
+    <!-- Not Logged In -->
+    <div id="login-section" class="section">
+      <h2>Sign In</h2>
+      <p style="margin-bottom: 15px;">Connect your accounts to get started</p>
+      <a href="http://localhost:3000/auth/github" class="btn btn-github">
+        Sign in with GitHub
+      </a>
+      <a href="http://localhost:3000/auth/twitter" class="btn btn-twitter">
+        Sign in with Twitter
+      </a>
+    </div>
+    
+    <!-- Logged In -->
+    <div id="dashboard-section" class="section hidden">
+      <div class="user-info">
+        <p><strong>Email:</strong> <span id="user-email"></span></p>
+        <p><strong>User ID:</strong> <span id="user-id"></span></p>
+      </div>
+      
+      <h2>Connected Accounts</h2>
+      <div style="margin: 15px 0;">
+        <div>
+          <strong>GitHub:</strong>
+          <span id="github-status" class="status status-disconnected">Not Connected</span>
+          <span id="github-username"></span>
+        </div>
+        <div style="margin-top: 10px;">
+          <strong>Twitter:</strong>
+          <span id="twitter-status" class="status status-disconnected">Not Connected</span>
+          <span id="twitter-username"></span>
+        </div>
+      </div>
+      
+      <div style="margin-top: 20px;">
+        <a href="http://localhost:3000/user/link/github" class="btn btn-github" id="link-github">
+          Link GitHub
+        </a>
+        <a href="http://localhost:3000/user/link/twitter" class="btn btn-twitter" id="link-twitter">
+          Link Twitter
+        </a>
+        <button class="btn btn-secondary" onclick="logout()">Logout</button>
+      </div>
+    </div>
+    
+    <!-- GitHub Repositories -->
+    <div id="repos-section" class="section hidden">
+      <h2>GitHub Repositories</h2>
+      <div id="repos-loading" class="loading">Loading repositories...</div>
+      <div id="repos-list" class="repo-list hidden"></div>
+      <button class="btn btn-github" onclick="saveRepositories()" id="save-repos-btn" style="display: none;">
+        Save Selection
+      </button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
