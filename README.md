@@ -346,3 +346,32 @@ npm run lint
 
 # Format code
 npm run format
+
+
+## Frontend Dashboard
+
+A simple testing dashboard is included for OAuth flows.
+
+### Start Frontend
+
+```bash
+cd frontend
+npm install
+npm start
+```
+
+Visit: http://localhost:3001
+
+### Features
+
+- OAuth login (GitHub/Twitter)
+- Account linking
+- Repository selection
+- Connection status
+
+### Update API URL
+
+Frontend connects to `http://localhost:3000` by default. Edit `frontend/public/app.js` to change:
+
+```javascript
+const API_URL = 'http://localhost:3000';
