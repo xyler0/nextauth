@@ -1,17 +1,24 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.use(helmet());
-
+  
+  // CORS - allow frontend
   app.enableCors({
-    origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      ...(process.env.ALLOWED_ORIGINS?.split(',') || []),
+    ],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
   app.useGlobalPipes(
@@ -21,13 +28,36 @@ async function bootstrap() {
       transform: true,
     }),
   );
-   // Swagger documentation
+
+  // Swagger documentation
   const config = new DocumentBuilder()
     .setTitle('X Poster API')
-    .setDescription('Automated X posting from GitHub and Journal')
+    .setDescription('Automated X posting from GitHub and Journal with tone enforcement')
     .setVersion('1.0')
-    .addTag('webhooks')
-    .addBearerAuth()
+    .addTag('auth', 'Authentication endpoints')
+    .addTag('user', 'User settings and profile')
+    .addTag('journal', 'Journal entry management')
+    .addTag('posts', 'Post creation and management')
+    .addTag('webhooks', 'GitHub webhook receiver')
+    .addTag('health', 'System health checks')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description: 'Enter JWT token',
+      },
+      'JWT',
+    )
+    .addApiKey(
+      {
+        type: 'apiKey',
+        name: 'X-Hub-Signature-256',
+        in: 'header',
+        description: 'GitHub webhook signature',
+      },
+      'X-Hub-Signature-256',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
