@@ -1,0 +1,65 @@
+name: Deploy to Production
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'production' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to server
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+        run: |
+          ssh $SERVER_USER@$SERVER_HOST << 'EOF'
+            cd /var/www/x-poster
+            git pull origin main
+            docker-compose pull
+            docker-compose up -d --force-recreate
+            docker-compose exec -T api npx prisma migrate deploy
+          EOF
+
+      - name: Health check
+        run: |
+          sleep 30
+          curl --fail https://${{ secrets.SERVER_HOST }}/health || exit 1
+
+      - name: Notify deployment
+        if: success()
+        run: |
+          curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+            -H 'Content-Type: application/json' \
+            -d '{"text":"✅ Deployment successful: ${{ github.event.release.tag_name }}"}'
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          ssh $SERVER_USER@$SERVER_HOST << 'EOF'
+            cd /var/www/x-poster
+            docker-compose down
+            git checkout HEAD~1
+            docker-compose up -d
+          EOF
