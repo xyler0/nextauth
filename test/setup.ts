@@ -18,6 +18,25 @@ jest.mock('openai', () => ({
   })),
 }));
 
+// Mock Octokit globally
+jest.mock('@octokit/rest', () => {
+  return {
+    Octokit: jest.fn().mockImplementation(() => ({
+      rest: {
+        repos: {
+          listForAuthenticatedUser: jest.fn().mockResolvedValue({
+            data: [],
+          }),
+        },
+        users: {
+          getAuthenticated: jest.fn().mockResolvedValue({
+            data: { login: 'testuser' },
+          }),
+        },
+      },
+    })),
+  };
+});
 
 jest.setTimeout(30000);
 
