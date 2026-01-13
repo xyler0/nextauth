@@ -1,5 +1,5 @@
+// src/config/oauth.config.ts
 export default () => ({
-  // GitHub OAuth
   github: {
     clientId: process.env.GITHUB_CLIENT_ID,
     clientSecret: process.env.GITHUB_CLIENT_SECRET,
@@ -7,10 +7,9 @@ export default () => ({
     scope: ['user:email', 'repo'],
   },
   
-  // X/Twitter OAuth
   twitter: {
-    consumerKey: process.env.TWITTER_CONSUMER_KEY,
-    consumerSecret: process.env.TWITTER_CONSUMER_SECRET,
+    clientID: process.env.TWITTER_CLIENT_ID,
+    clientSecret: process.env.TWITTER_CLIENT_SECRET, 
     callbackURL: process.env.TWITTER_CALLBACK_URL || 'http://localhost:3000/auth/twitter/callback',
   },
 });

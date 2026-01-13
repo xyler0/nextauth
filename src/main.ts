@@ -1,11 +1,31 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import session from 'express-session';
+import passport from 'passport';   
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+    // Session configuration
+  app.use(
+    session({
+      secret: process.env.SESSION_SECRET || 'fallback-secret-change-in-production',
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        maxAge: 3600000,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+      },
+    }),
+  );
+    // Initialize Passport
+  app.use(passport.initialize());
+  app.use(passport.session());
 
   app.use(helmet());
   

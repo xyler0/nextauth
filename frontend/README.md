@@ -19,11 +19,11 @@ Visit: http://localhost:3001
 
 ## Features
 
-- ✅ OAuth login with GitHub/Twitter
-- ✅ Account linking
-- ✅ Repository selection
-- ✅ Connection status
-- ✅ Logout
+-  OAuth login with GitHub/Twitter
+-  Account linking
+-  Repository selection
+-  Connection status
+-  Logout
 
 ## Usage
 

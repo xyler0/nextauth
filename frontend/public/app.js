@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000';
+const API_URL = 'https://x-poster-fdmr.onrender.com';
 let token = null;
 
 // Initialize
