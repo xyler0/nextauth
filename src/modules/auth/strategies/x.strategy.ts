@@ -23,7 +23,7 @@ export class XStrategy extends PassportStrategy(Strategy, 'x') {
   private readonly logger = new Logger(XStrategy.name);
 
   constructor(
-    config: ConfigService,
+    private readonly config: ConfigService,
     private readonly prisma: PrismaService,
   ) {
     super({
@@ -44,11 +44,12 @@ export class XStrategy extends PassportStrategy(Strategy, 'x') {
   ) {
     this.logger.log(`X OAuth callback for user: ${profile.username}`);
 
-    const email = profile.emails?.[0]?.value ?? null;
+    const email = profile.emails?.[0]?.value || `${profile.username}@twitter.placeholder`;
     const existingUserId = req.session?.userId;
 
+    // Linking Twitter to an existing session user
     if (existingUserId) {
-      return this.prisma.user.update({
+      const user = await this.prisma.user.update({
         where: { id: existingUserId },
         data: {
           xId: profile.id,
@@ -57,19 +58,34 @@ export class XStrategy extends PassportStrategy(Strategy, 'x') {
           xAccessSecret: refreshToken,
         },
       });
+      this.logger.log(`Linked Twitter to user: ${user.id}`);
+      return user;
     }
 
+    // Find by Twitter ID
     let user = await this.prisma.user.findUnique({
       where: { xId: profile.id },
     });
 
-    if (!user && email) {
-      user = await this.prisma.user.findUnique({
-        where: { email },
+    if (user) {
+      // Update tokens if user exists
+      user = await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          xAccessToken: accessToken,
+          xAccessSecret: refreshToken,
+          xUsername: profile.username,
+        },
       });
+      this.logger.log(`Updated existing Twitter user: ${user.id}`);
+      return user;
+    }
 
+    // Find by email if available and not placeholder
+    if (email && !email.includes('@twitter.placeholder')) {
+      user = await this.prisma.user.findUnique({ where: { email } });
       if (user) {
-        return this.prisma.user.update({
+        user = await this.prisma.user.update({
           where: { id: user.id },
           data: {
             xId: profile.id,
@@ -78,32 +94,25 @@ export class XStrategy extends PassportStrategy(Strategy, 'x') {
             xAccessSecret: refreshToken,
           },
         });
+        this.logger.log(`Linked Twitter to existing email account: ${user.id}`);
+        return user;
       }
-
-      return this.prisma.user.create({
-        data: {
-          email,
-          password: '',
-          name: profile.displayName ?? profile.username,
-          xId: profile.id,
-          xUsername: profile.username,
-          xAccessToken: accessToken,
-          xAccessSecret: refreshToken,
-        },
-      });
     }
 
-    if (!user) {
-      throw new UnauthorizedException('Email is required from X');
-    }
-
-    return this.prisma.user.update({
-      where: { id: user.id },
+    // Create new user
+    user = await this.prisma.user.create({
       data: {
+        email,
+        password: '', // OAuth users don't need password
+        name: profile.displayName || profile.username,
+        xId: profile.id,
+        xUsername: profile.username,
         xAccessToken: accessToken,
         xAccessSecret: refreshToken,
-        xUsername: profile.username,
       },
     });
+
+    this.logger.log(`Created new user from Twitter OAuth: ${user.id}`);
+    return user;
   }
 }

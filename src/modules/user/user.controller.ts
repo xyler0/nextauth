@@ -45,6 +45,12 @@ interface CurrentUserType {
   xUsername?: string | null;
 }
 
+type SessionRequest = Request & {
+  session?: {
+    userId?: string;
+  };
+};
+
 @ApiTags('user')
 @Controller('user')
 @ApiBearerAuth()
@@ -184,17 +190,19 @@ export class UserController {
   @ApiResponse({ status: 302, description: 'Redirects to Twitter' })
   async linkTwitter() {
   }
-
+  
   @Get('link/twitter/callback')
   @UseGuards(XOAuthGuard)
   @ApiOperation({ summary: 'Twitter link callback' })
-  async linkTwitterCallback(@Req() req: Request, @Res() res: Response) {
-    const user = req.user as CurrentUserType;
-    
+  async linkTwitterCallback(@Req() req: SessionRequest, @Res() res: Response) {
+    if (req.user && !req.session?.userId) {
+      const user = req.user as CurrentUserType;
+    }
+  
     const frontendUrl = this.config.get<string>('FRONTEND_URL');
     res.redirect(`${frontendUrl}/settings?linked=twitter&success=true`);
   }
-
+  
   @Delete('link/github')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Unlink GitHub account' })
