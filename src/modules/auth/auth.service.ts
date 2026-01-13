@@ -11,6 +11,14 @@ import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 
+export type ValidatedUser = {
+  id: string;
+  email: string;
+  name: string | null;
+  maxPostsPerDay: number;
+  timezone: string;
+};
+
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -88,7 +96,7 @@ export class AuthService {
     };
   }
 
-  async validateUser(userId: string): Promise<any> {
+  async validateUser(userId: string): Promise<ValidatedUser | null> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: {

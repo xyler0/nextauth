@@ -1,4 +1,10 @@
-import { IsString, IsArray, ValidateNested, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsArray,
+  ValidateNested,
+  IsOptional,
+  IsObject,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -22,10 +28,38 @@ class RepositoryDto {
   full_name: string;
 }
 
+class PullRequestDto {
+  @ApiProperty()
+  @IsString()
+  title: string;
+
+  @ApiProperty()
+  @IsString()
+  html_url: string;
+
+  @ApiProperty()
+  @IsString()
+  state: string;
+}
+
+class ReleaseDto {
+  @ApiProperty()
+  @IsString()
+  tag_name: string;
+
+  @ApiProperty()
+  @IsString()
+  name: string;
+
+  @ApiProperty()
+  @IsString()
+  html_url: string;
+}
+
 export class GitHubWebhookDto {
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Webhook event action',
-    example: 'opened' 
+    example: 'opened',
   })
   @IsString()
   action: string;
@@ -35,21 +69,25 @@ export class GitHubWebhookDto {
   @Type(() => RepositoryDto)
   repository: RepositoryDto;
 
-  @ApiPropertyOptional({ 
-    description: 'Array of commits (for push events)',
-    type: [CommitDto]
+  @ApiPropertyOptional({
+    description: 'Array of commits (push events)',
+    type: [CommitDto],
   })
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CommitDto)
-  @IsOptional()
   commits?: CommitDto[];
 
-  @ApiPropertyOptional({ description: 'Pull request information' })
+  @ApiPropertyOptional({ description: 'Pull request payload' })
   @IsOptional()
-  pull_request?: any;
+  @ValidateNested()
+  @Type(() => PullRequestDto)
+  pull_request?: PullRequestDto;
 
-  @ApiPropertyOptional({ description: 'Release information' })
+  @ApiPropertyOptional({ description: 'Release payload' })
   @IsOptional()
-  release?: any;
+  @ValidateNested()
+  @Type(() => ReleaseDto)
+  release?: ReleaseDto;
 }

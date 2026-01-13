@@ -14,7 +14,7 @@ describe('ToneService', () => {
           provide: ConfigService,
           useValue: {
             get: jest.fn((key: string) => {
-              const config = {
+              const config: Record<string, any> = {
                 OPENAI_API_KEY: 'test-key',
                 OPENAI_MODEL: 'gpt-4o-mini',
                 OPENAI_TEMPERATURE: 0.3,
@@ -40,39 +40,36 @@ describe('ToneService', () => {
     });
 
     it('should accept valid input length', () => {
-      // Note: This would call OpenAI API in real scenario
-      // We'll mock this in integration tests
+      // Placeholder; actual OpenAI call would be mocked in integration tests
       expect(service).toBeDefined();
     });
   });
 
   describe('rule enforcement', () => {
-    it('should validate banned phrases', () => {
-      const service_instance = service as any;
-      
-      // Test banned phrase detection
+    let instance: { enforceRules: (text: string) => void };
+
+    beforeEach(() => {
+      // Cast to access private method safely
+      instance = service as unknown as { enforceRules: (text: string) => void };
+    });
+
+    it('should detect banned phrases', () => {
       expect(() => {
-        service_instance.enforceRules('I am excited to announce this feature');
+        instance.enforceRules('I am excited to announce this feature');
       }).toThrow('Contains banned phrase');
     });
 
-    it('should validate sentence length', () => {
-      const service_instance = service as any;
-      const longSentence = Array(50)
-      .fill('word')
-      .join(' ');
-
+    it('should detect long sentences', () => {
+      const longSentence = Array(50).fill('word').join(' ');
       expect(() => {
-        service_instance.enforceRules(longSentence);
+        instance.enforceRules(longSentence);
       }).toThrow('too long');
     });
 
-    it('should validate X character limit', () => {
-      const service_instance = service as any;
+    it('should enforce X character limit', () => {
       const tooLong = 'a'.repeat(281);
-      
       expect(() => {
-        service_instance.enforceRules(tooLong);
+        instance.enforceRules(tooLong);
       }).toThrow('Exceeds X character limit');
     });
   });

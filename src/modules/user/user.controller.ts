@@ -29,9 +29,21 @@ import { AuthService } from '../auth/auth.service';
 import { ConfigService } from '@nestjs/config';
 import { GitHubOAuthGuard } from 'src/common/guards/github-oauth.guard';
 import { XOAuthGuard } from 'src/common/guards/x-oauth.guard';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { GitHubService } from '../github/github.service';
 import { SelectReposDto } from './dto/select-repos.dto';
+
+interface CurrentUserType {
+  id: string;
+  email?: string;
+  name?: string;
+  maxPostsPerDay?: number;
+  githubId?: string | null;
+  githubUsername?: string | null;
+  githubRepos?: string[] | null;
+  xId?: string | null;
+  xUsername?: string | null;
+}
 
 @ApiTags('user')
 @Controller('user')
@@ -50,7 +62,7 @@ export class UserController {
   @Get('profile')
   @ApiOperation({ summary: 'Get user profile' })
   @ApiResponse({ status: 200, description: 'User profile' })
-  async getProfile(@CurrentUser() user: any) {
+  async getProfile(@CurrentUser() user: CurrentUserType) {
     const profile = await this.prisma.user.findUnique({
       where: { id: user.id },
       select: {
@@ -85,7 +97,7 @@ export class UserController {
   @ApiResponse({ status: 200, description: 'Settings updated' })
   async updateSettings(
     @Body() dto: UpdateSettingsDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserType,
   ) {
     await this.prisma.user.update({
       where: { id: user.id },
@@ -102,7 +114,7 @@ export class UserController {
   @ApiResponse({ status: 200, description: 'Credentials updated' })
   async updateXCredentials(
     @Body() dto: UpdateXCredentialsDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserType,
   ) {
     await this.prisma.user.update({
       where: { id: user.id },
@@ -130,7 +142,7 @@ export class UserController {
   @ApiResponse({ status: 200, description: 'GitHub settings updated' })
   async updateGitHubSettings(
     @Body() dto: UpdateGitHubSettingsDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserType,
   ) {
     await this.prisma.user.update({
       where: { id: user.id },
@@ -144,7 +156,7 @@ export class UserController {
   @Get('x-credentials/verify')
   @ApiOperation({ summary: 'Verify X credentials' })
   @ApiResponse({ status: 200, description: 'Verification result' })
-  async verifyXCredentials(@CurrentUser() user: any) {
+  async verifyXCredentials(@CurrentUser() user: CurrentUserType) {
     const isValid = await this.x.verifyCredentials(user.id);
     return { valid: isValid };
   }
@@ -159,8 +171,8 @@ export class UserController {
   @Get('link/github/callback')
   @UseGuards(GitHubOAuthGuard)
   @ApiOperation({ summary: 'GitHub link callback' })
-  async linkGitHubCallback(@Req() req: any, @Res() res: Response) {
-    const user = req.user;
+  async linkGitHubCallback(@Req() req: Request, @Res() res: Response) {
+    const user = req.user as CurrentUserType;
     
     const frontendUrl = this.config.get<string>('FRONTEND_URL');
     res.redirect(`${frontendUrl}/settings?linked=github&success=true`);
@@ -176,8 +188,8 @@ export class UserController {
   @Get('link/twitter/callback')
   @UseGuards(XOAuthGuard)
   @ApiOperation({ summary: 'Twitter link callback' })
-  async linkTwitterCallback(@Req() req: any, @Res() res: Response) {
-    const user = req.user;
+  async linkTwitterCallback(@Req() req: Request, @Res() res: Response) {
+    const user = req.user as CurrentUserType;
     
     const frontendUrl = this.config.get<string>('FRONTEND_URL');
     res.redirect(`${frontendUrl}/settings?linked=twitter&success=true`);
@@ -191,7 +203,7 @@ export class UserController {
     description: 'GitHub account unlinked',
     type: LinkAccountResponseDto,
   })
-  async unlinkGitHub(@CurrentUser() user: any): Promise<LinkAccountResponseDto> {
+  async unlinkGitHub(@CurrentUser() user: CurrentUserType): Promise<LinkAccountResponseDto> {
     await this.prisma.user.update({
       where: { id: user.id },
       data: {
@@ -219,7 +231,7 @@ export class UserController {
     description: 'Twitter account unlinked',
     type: LinkAccountResponseDto,
   })
-  async unlinkTwitter(@CurrentUser() user: any): Promise<LinkAccountResponseDto> {
+  async unlinkTwitter(@CurrentUser() user: CurrentUserType): Promise<LinkAccountResponseDto> {
     await this.prisma.user.update({
       where: { id: user.id },
       data: {
@@ -251,7 +263,7 @@ export class UserController {
       },
     },
   })
-  async getConnections(@CurrentUser() user: any) {
+  async getConnections(@CurrentUser() user: CurrentUserType) {
     const userData = await this.prisma.user.findUnique({
       where: { id: user.id },
       select: {
@@ -292,7 +304,7 @@ export class UserController {
       },
     },
   })
-  async getGitHubRepositories(@CurrentUser() user: any) {
+  async getGitHubRepositories(@CurrentUser() user: CurrentUserType) {
     const repositories = await this.github.getUserRepositories(user.id);
     
     const userData = await this.prisma.user.findUnique({
@@ -319,7 +331,7 @@ export class UserController {
   @ApiResponse({ status: 200, description: 'Repositories updated' })
   async selectRepositories(
     @Body() dto: SelectReposDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: CurrentUserType,
   ) {
     await this.prisma.user.update({
       where: { id: user.id },
@@ -339,7 +351,7 @@ export class UserController {
   @Get('github/verify')
   @ApiOperation({ summary: 'Verify GitHub connection' })
   @ApiResponse({ status: 200, description: 'Verification result' })
-  async verifyGitHub(@CurrentUser() user: any) {
+  async verifyGitHub(@CurrentUser() user: CurrentUserType) {
     const isValid = await this.github.verifyToken(user.id);
     return { valid: isValid };
   }

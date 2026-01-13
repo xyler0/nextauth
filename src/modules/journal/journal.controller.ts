@@ -21,10 +21,11 @@ import { JournalResponseDto } from './dto/journal-response.dto';
 import { ProcessAndPostDto } from './dto/process-and-post.dto';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { PostSource } from '../../generated/prisma/client';
+import { AuthUser } from '../../common/types/auth-user.type';
 
 @ApiTags('journal')
-@Controller('journal')
 @ApiBearerAuth()
+@Controller('journal')
 export class JournalController {
   private readonly logger = new Logger(JournalController.name);
 
@@ -46,7 +47,7 @@ export class JournalController {
   })
   async createEntry(
     @Body() dto: CreateJournalDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: AuthUser,
   ): Promise<JournalResponseDto> {
     this.logger.log(`Received journal entry from user ${user.id}`);
     return this.journalService.createEntry(dto, user.id);
@@ -58,29 +59,17 @@ export class JournalController {
     summary: 'Process journal entry and post to X',
     description: 'Extract segments, apply tone, and post to X in one operation',
   })
-  @ApiResponse({
-    status: 200,
-    description: 'Journal processed and posted',
-    schema: {
-      example: {
-        processed: true,
-        results: [
-          { text: 'Segment 1', posted: true, postId: 'clx123' },
-          { text: 'Segment 2', posted: true, postId: 'clx456' },
-        ],
-      },
-    },
-  })
   async processAndPost(
     @Body() dto: ProcessAndPostDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: AuthUser,
   ) {
-    this.logger.log(`Processing and posting journal: ${dto.entryId}`);
+    this.logger.log(`Processing journal: ${dto.entryId}`);
 
-    // Extract segments
-    const segments = await this.journalService.processEntry(dto.entryId, user.id);
+    const segments = await this.journalService.processEntry(
+      dto.entryId,
+      user.id,
+    );
 
-    // Compose and post each segment
     const results = await this.composer.composeMany(
       segments,
       PostSource.JOURNAL,
@@ -100,25 +89,19 @@ export class JournalController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Process journal entry (extract only)',
-    description: 'Extract top segments without posting',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Journal processed successfully',
   })
   async processEntry(
     @Param('id') id: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: AuthUser,
   ) {
-    this.logger.log(`Processing journal entry: ${id} for user ${user.id}`);
+    this.logger.log(`Processing journal ${id} for user ${user.id}`);
     const segments = await this.journalService.processEntry(id, user.id);
     return { segments };
   }
 
   @Get()
   @ApiOperation({ summary: 'Get user journal entries' })
-  @ApiResponse({ status: 200, description: 'List of journal entries' })
-  async getUserEntries(@CurrentUser() user: any) {
+  async getUserEntries(@CurrentUser() user: AuthUser) {
     return this.journalService.getUserEntries(user.id);
   }
 }

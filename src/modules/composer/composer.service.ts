@@ -5,6 +5,11 @@ import { XService } from '../x/x.service';
 import { StoreService } from '../store/store.service';
 import { PostSource } from '../../generated/prisma/client';
 
+export interface PostMetadata {
+  tags?: string[];
+  [key: string]: string | number | boolean | string[] | undefined;
+}
+
 @Injectable()
 export class ComposerService {
   private readonly logger = new Logger(ComposerService.name);
@@ -23,15 +28,15 @@ export class ComposerService {
     rawText: string,
     source: PostSource,
     userId: string,
-    userMaxPosts: number, 
-    metadata?: any,
+    userMaxPosts: number,
+    metadata?: PostMetadata,
   ): Promise<{ posted: boolean; reason?: string; postId?: string }> {
     this.logger.log(`Composing post from ${source} for user ${userId}`);
 
     // Check daily limit
     const canPost = await this.store.canPostToday(userId, userMaxPosts);
     if (!canPost) {
-      this.logger.warn('Daily post limit reached for user ${userId}');
+      this.logger.warn(`Daily post limit reached for user ${userId}`);
       return { posted: false, reason: 'Daily limit reached' };
     }
 
@@ -63,10 +68,14 @@ export class ComposerService {
       await this.store.incrementDailyStats(new Date());
 
       this.logger.log(`Post published successfully: ${id}`);
-      return { posted: true };
-    } catch (error) {
-      this.logger.error('Composition failed', error);
-      return { posted: false, reason: error.message };
+      return { posted: true, postId: id };
+    } catch (error: unknown) {
+    let reason = 'Unknown error';
+    if (error instanceof Error) {
+    reason = error.message;
+     }
+      this.logger.error('Composition failed', reason);
+      return { posted: false, reason };
     }
   }
 
@@ -74,10 +83,10 @@ export class ComposerService {
     texts: string[],
     source: PostSource,
     userId: string,
-    userMaxPosts: number, 
-    metadata?: any,
-  ): Promise<Array<{ text: string; posted: boolean; reason?: string }>> {
-    const results: Array<{ text: string; posted: boolean; reason?: string }> = [];
+    userMaxPosts: number,
+    metadata?: PostMetadata,
+  ): Promise<Array<{ text: string; posted: boolean; reason?: string; postId?: string }>> {
+    const results: Array<{ text: string; posted: boolean; reason?: string; postId?: string }> = [];
 
     for (const text of texts) {
       const result = await this.compose(text, source, userId, userMaxPosts, metadata);

@@ -3,11 +3,18 @@ import { PrismaService } from '../../database/prisma.service';
 import { PostSource } from '../../generated/prisma/client';
 import * as crypto from 'crypto';
 
+interface PostMetadata {
+  tags?: string[];
+  mood?: string;
+  [key: string]: string | number | boolean | string[] | undefined;
+}
+
+
 export interface CreatePostDto {
   content: string;
   source: PostSource;
   userId: string;
-  metadata?: any;
+  metadata?: PostMetadata;
 }
 
 @Injectable()

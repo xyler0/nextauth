@@ -10,11 +10,19 @@ import { XOAuthGuard } from 'src/common/guards/x-oauth.guard';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { OAuthUser } from 'src/common/types/oauth-user.type';
+import { JwtUser } from 'src/common/types/jwt-user.type';
+import { Logger } from '@nestjs/common';
+
+
+interface OAuthRequest extends Request {
+  user: OAuthUser;
+}
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  logger: any;
+  private readonly logger = new Logger(AuthController.name);
   constructor(
     private readonly auth: AuthService,
     private readonly configService: ConfigService,
@@ -51,7 +59,7 @@ export class AuthController {
    @Public()
    @UseGuards(GitHubOAuthGuard)
    @ApiOperation({ summary: 'GitHub OAuth callback' })
-   async githubCallback(@Req() req: any, @Res() res: Response) {
+   async githubCallback(@Req() req: OAuthRequest, @Res() res: Response) {
      const user = req.user;
      const token = this.auth.generateToken(user.id, user.email);
      
@@ -71,7 +79,7 @@ export class AuthController {
    @Public()
    @UseGuards(XOAuthGuard)
    @ApiOperation({ summary: 'Twitter OAuth callback' })
-   async twitterCallback(@Req() req: any, @Res() res: Response) {
+   async twitterCallback(@Req() req: OAuthRequest, @Res() res: Response) {
      const user = req.user;
      const token = this.auth.generateToken(user.id, user.email);
      
@@ -89,7 +97,7 @@ export class AuthController {
      status: 200, 
      description: 'Logout successful',
    })
-   async logout(@CurrentUser() user: any) {
+   async logout(@CurrentUser() user: JwtUser) {
      this.logger.log(`User ${user.id} logged out`);
      
      return {
