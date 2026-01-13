@@ -6,6 +6,7 @@ import {
   MaxLength,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Json } from 'src/common/types/journal';
 
 export class CreateJournalDto {
   @ApiProperty({
@@ -24,5 +25,5 @@ export class CreateJournalDto {
   })
   @IsOptional()
   @IsObject()
-  metadata?: Record<string, unknown>;
+   metadata?: Json;
 }

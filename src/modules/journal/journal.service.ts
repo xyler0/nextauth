@@ -4,6 +4,7 @@ import { JournalProcessor } from './journal.processor';
 import { CreateJournalDto } from './dto/create-journal.dto';
 import { JournalResponseDto } from './dto/journal-response.dto';
 
+
 @Injectable()
 export class JournalService {
   private readonly logger = new Logger(JournalService.name);
@@ -19,7 +20,7 @@ export class JournalService {
     const entry = await this.prisma.journalEntry.create({
       data: {
         content: dto.content,
-        metadata: dto.metadata,
+        metadata: dto.metadata ?? undefined,
         userId,
       },
     });
