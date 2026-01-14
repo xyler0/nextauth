@@ -55,7 +55,7 @@ type SessionRequest = Request & {
 @UseGuards(JwtAuthGuard)
 @ApiTags('user')
 @Controller('user')
-@ApiBearerAuth()
+@ApiBearerAuth('JWT')
 export class UserController {
   private readonly logger = new Logger(UserController.name);
 

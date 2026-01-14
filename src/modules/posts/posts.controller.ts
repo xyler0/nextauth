@@ -31,7 +31,7 @@ interface ComposerResult {
 
 @ApiTags('posts')
 @Controller('posts')
-@ApiBearerAuth()
+@ApiBearerAuth('JWT') 
 export class PostsController {
   private readonly logger = new Logger(PostsController.name);
 

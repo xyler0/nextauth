@@ -6,19 +6,19 @@ import {
   MemoryHealthIndicator,
   DiskHealthIndicator,
   HealthIndicatorService,
-  HealthIndicatorResult,
 } from '@nestjs/terminus';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
+import { Public } from '../common/decorators/public.decorator';
 
 @Injectable()
- export class DatabaseHealthIndicator {
+export class DatabaseHealthIndicator {
   constructor(
     private readonly prisma: PrismaService,
     private readonly healthIndicatorService: HealthIndicatorService,
   ) {}
 
-   async isHealthy(key: string) {
+  async isHealthy(key: string) {
     const indicator = this.healthIndicatorService.check(key);
 
     try {
@@ -41,6 +41,7 @@ export class HealthController {
   ) {}
 
   @Get()
+  @Public()
   @HealthCheck()
   @ApiOperation({ summary: 'Health check endpoint' })
   @ApiResponse({ status: 200, description: 'Service is healthy' })

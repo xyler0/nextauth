@@ -1,3 +1,4 @@
+// src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -9,7 +10,16 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-    // Session configuration
+  // IMPORTANT: Apply validation pipe BEFORE any guards
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
+
+  // Session configuration
   app.use(
     session({
       secret: process.env.SESSION_SECRET || 'fallback-secret-change-in-production',
@@ -23,9 +33,10 @@ async function bootstrap() {
       },
     }),
   );
-    // Initialize Passport
+
+  // Initialize Passport
   app.use(passport.initialize());
-  app.use(passport.session());
+  //app.use(passport.session());
 
   app.use(helmet());
   
@@ -40,14 +51,6 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
-
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  );
 
   // Swagger documentation
   const config = new DocumentBuilder()
@@ -65,9 +68,9 @@ async function bootstrap() {
         type: 'http',
         scheme: 'bearer',
         bearerFormat: 'JWT',
-        description: 'Enter JWT token',
+        description: 'Enter JWT token (without "Bearer" prefix)',
       },
-      'JWT',
+      'JWT', // This name must match the one used in @ApiBearerAuth()
     )
     .addApiKey(
       {
@@ -81,7 +84,11 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  SwaggerModule.setup('api/docs', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true, // Keep the token even after page refresh
+    },
+  });
 
   const port = process.env.PORT || 3000;
   await app.listen(port);

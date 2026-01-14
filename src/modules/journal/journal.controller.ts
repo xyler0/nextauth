@@ -24,7 +24,7 @@ import { PostSource } from '../../generated/prisma/client';
 import { AuthUser } from '../../common/types/auth-user.type';
 
 @ApiTags('journal')
-@ApiBearerAuth()
+@ApiBearerAuth('JWT') 
 @Controller('journal')
 export class JournalController {
   private readonly logger = new Logger(JournalController.name);
