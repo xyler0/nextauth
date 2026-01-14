@@ -32,6 +32,7 @@ import { XOAuthGuard } from 'src/common/guards/x-oauth.guard';
 import { Response, Request } from 'express';
 import { GitHubService } from '../github/github.service';
 import { SelectReposDto } from './dto/select-repos.dto';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 
 interface CurrentUserType {
   id: string;
@@ -51,6 +52,7 @@ type SessionRequest = Request & {
   };
 };
 
+@UseGuards(JwtAuthGuard)
 @ApiTags('user')
 @Controller('user')
 @ApiBearerAuth()

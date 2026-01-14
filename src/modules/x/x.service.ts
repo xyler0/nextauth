@@ -58,8 +58,8 @@ export class XService {
     accessSecret: string,
   ): Promise<{ id: string; text: string }> {
     try {
-      const consumerKey = this.config.get<string>('TWITTER_CONSUMER_KEY')!;
-      const consumerSecret = this.config.get<string>('TWITTER_CONSUMER_SECRET')!;
+      const consumerKey = this.config.get<string>('TWITTER_CLIENT_ID')!;
+      const consumerSecret = this.config.get<string>('TWITTER_CLIENT_SECRET')!;
 
       const client = new TwitterApi({
         appKey: consumerKey,
@@ -115,8 +115,8 @@ export class XService {
     if (!user?.xAccessToken || !user?.xAccessSecret) return false;
 
     try {
-      const consumerKey = this.config.get<string>('TWITTER_CONSUMER_KEY')!;
-      const consumerSecret = this.config.get<string>('TWITTER_CONSUMER_SECRET')!;
+      const consumerKey = this.config.get<string>('TWITTER_CLIENT_ID')!;
+      const consumerSecret = this.config.get<string>('TWITTER_CLIENT_SECRET')!;
 
       const client = new TwitterApi({
         appKey: consumerKey,
