@@ -4,9 +4,9 @@ services:
     container_name: xposter-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: xposter
-      POSTGRES_PASSWORD: xyler23
-      POSTGRES_DB: xposter
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
     ports:
       - '5432:5432'
     volumes:
@@ -26,23 +26,23 @@ services:
     ports:
       - '3000:3000'
     environment:
-      NODE_ENV: ${NODE_ENV:-development}
-      DATABASE_URL: postgresql://xposter:xyler23@postgres:5432/xposter
+      NODE_ENV: ${NODE_ENV}
+      DATABASE_URL: ${DATABASE_URL}
       SESSION_SECRET: ${SESSION_SECRET}
       JWT_SECRET: ${JWT_SECRET}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
       GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
-      GITHUB_CALLBACK_URL: ${GITHUB_CALLBACK_URL:-http://localhost:3000/auth/github/callback}
+      GITHUB_CALLBACK_URL: ${GITHUB_CALLBACK_URL}
       TWITTER_CLIENT_ID: ${TWITTER_CLIENT_ID}
       TWITTER_CLIENT_SECRET: ${TWITTER_CLIENT_SECRET}
-      TWITTER_CALLBACK_URL: ${TWITTER_CALLBACK_URL:-http://localhost:3000/auth/twitter/callback}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
-      MAX_POSTS_PER_DAY: ${MAX_POSTS_PER_DAY:-3}
-      X_DRY_RUN: ${X_DRY_RUN:-true}
-      SCHEDULER_ENABLED: ${SCHEDULER_ENABLED:-false}
-      GITHUB_WEBHOOK_SECRET: ${GITHUB_WEBHOOK_SECRET:-}
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:3001}
+      TWITTER_CALLBACK_URL: ${TWITTER_CALLBACK_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
+      MAX_POSTS_PER_DAY: ${MAX_POSTS_PER_DAY}
+      X_DRY_RUN: ${X_DRY_RUN}
+      SCHEDULER_ENABLED: ${SCHEDULER_ENABLED}
+      GITHUB_WEBHOOK_SECRET: ${GITHUB_WEBHOOK_SECRET}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
     depends_on:
       postgres:
         condition: service_healthy

@@ -10,7 +10,6 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // IMPORTANT: Apply validation pipe BEFORE any guards
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -36,17 +35,12 @@ async function bootstrap() {
 
   // Initialize Passport
   app.use(passport.initialize());
-  //app.use(passport.session());
 
   app.use(helmet());
   
   // CORS - allow frontend
   app.enableCors({
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:3001',
-      ...(process.env.ALLOWED_ORIGINS?.split(',') || []),
-    ],
+    origin: process.env.ALLOWED_ORIGINS?.split(',') || [],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -70,7 +64,7 @@ async function bootstrap() {
         bearerFormat: 'JWT',
         description: 'Enter JWT token (without "Bearer" prefix)',
       },
-      'JWT', // This name must match the one used in @ApiBearerAuth()
+      'JWT',
     )
     .addApiKey(
       {
@@ -86,13 +80,10 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document, {
     swaggerOptions: {
-      persistAuthorization: true, // Keep the token even after page refresh
     },
   });
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
-  console.log(`Application listening on port ${port}`);
-  console.log(`API Documentation: http://localhost:${port}/api/docs`);
 }
 bootstrap();

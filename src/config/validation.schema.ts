@@ -39,5 +39,4 @@ export const validationSchema = Joi.object({
 
   // Frontend
   FRONTEND_URL: Joi.string().default('http://localhost:3001'),
-
 });
