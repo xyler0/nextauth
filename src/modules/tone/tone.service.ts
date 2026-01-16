@@ -1,6 +1,7 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
+import { PatternService } from '../pattern/pattern.service';
 import { DEFAULT_TONE_RULES } from './constants/tone-rules.constant';
 import { TONE_SYSTEM_PROMPT } from './constants/tone-prompt.constant';
 import { ToneRules } from './interfaces/tone-rules.interface';
@@ -14,8 +15,12 @@ export class ToneService {
   private readonly temperature: number;
   private readonly testMode: boolean;
 
-  constructor(private readonly config: ConfigService) {
+  constructor(
+    private readonly config: ConfigService,
+    private readonly patternService: PatternService,
+  ) {
     this.testMode = this.config.get<string>('NODE_ENV') === 'test';
+    
     const apiKey = this.config.get<string>('OPENAI_API_KEY');
     if (!apiKey && !this.testMode) {
       throw new Error('OPENAI_API_KEY is required');
@@ -27,21 +32,35 @@ export class ToneService {
     this.temperature = this.config.get<number>('OPENAI_TEMPERATURE', 0.3);
   }
 
-  async applyTone(rawText: string): Promise<string> {
+  async applyTone(rawText: string, userId?: string): Promise<string> {
     this.logger.debug(`Applying tone to: ${rawText.substring(0, 50)}...`);
 
     // Pre-validation
     this.validateInput(rawText);
 
-     // In test mode, use simple transformation
+    // In test mode, use simple transformation
     if (this.testMode) {
       const simplified = this.simpleTransform(rawText);
       this.enforceRules(simplified);
       return simplified;
     }
 
+    // Get personalized prompt if user has pattern
+    let systemPrompt = TONE_SYSTEM_PROMPT;
+    if (userId) {
+      try {
+        const personalizedPrompt = await this.patternService.generatePersonalizedPrompt(userId);
+        if (personalizedPrompt) {
+          systemPrompt = personalizedPrompt;
+          this.logger.debug('Using personalized writing pattern');
+        }
+      } catch (error) {
+        this.logger.warn('Failed to get personalized prompt, using default', error);
+      }
+    }
+
     // Transform via LLM
-    const transformed = await this.transform(rawText);
+    const transformed = await this.transform(rawText, systemPrompt);
 
     // Post-validation
     this.enforceRules(transformed);
@@ -49,6 +68,32 @@ export class ToneService {
     this.logger.log(`Tone applied successfully`);
     return transformed;
   }
+
+  private async transform(text: string, systemPrompt: string): Promise<string> {
+    try {
+      const response = await this.openai.chat.completions.create({
+        model: this.model,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: text },
+        ],
+        temperature: this.temperature,
+        max_tokens: 100,
+      });
+
+      const content = response.choices[0].message.content?.trim();
+      if (!content) {
+        throw new Error('Empty response from OpenAI');
+      }
+
+      return content;
+    } catch (error) {
+      this.logger.error('OpenAI transformation failed', error);
+      throw new BadRequestException('Failed to apply tone transformation');
+    }
+  }
+
+
 
    private simpleTransform(text: string): string {
     // Simple test transformation: remove fluff and truncate
@@ -66,30 +111,6 @@ export class ToneService {
 
     if (text.length > 5000) {
       throw new BadRequestException('Input too long (max 5000 characters)');
-    }
-  }
-
-  private async transform(text: string): Promise<string> {
-    try {
-      const response = await this.openai.chat.completions.create({
-        model: this.model,
-        messages: [
-          { role: 'system', content: TONE_SYSTEM_PROMPT },
-          { role: 'user', content: text },
-        ],
-        temperature: this.temperature,
-        max_tokens: 100,
-      });
-
-      const content = response.choices[0].message.content?.trim();
-      if (!content) {
-        throw new Error('Empty response from OpenAI');
-      }
-
-      return content;
-    } catch (error) {
-      this.logger.error('OpenAI transformation failed', error);
-      throw new BadRequestException('Failed to apply tone transformation');
     }
   }
 
