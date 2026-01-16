@@ -157,4 +157,52 @@ async getFeedback(@CurrentUser() user: any) {
 
   return { feedback };
 }
+
+@Get('stats')
+@ApiOperation({ summary: 'Get learning statistics' })
+@ApiResponse({ 
+  status: 200, 
+  description: 'Pattern learning statistics',
+  schema: {
+    example: {
+      hasPattern: true,
+      totalPostsAnalyzed: 25,
+      avgRating: 4.2,
+      acceptanceRate: 0.85,
+      topStarters: ['Shipped', 'Built', 'Fixed'],
+    }
+  }
+})
+async getStats(@CurrentUser() user: any) {
+  const pattern = await this.patternService.getPattern(user.id);
+  
+  // Get feedback stats
+  const feedback = await this.prisma.trainingFeedback.findMany({
+    where: { userId: user.id },
+    select: {
+      rating: true,
+      accepted: true,
+    },
+  });
+
+  const avgRating = feedback.length > 0
+    ? feedback.reduce((sum, f) => sum + f.rating, 0) / feedback.length
+    : 0;
+
+  const acceptanceRate = feedback.length > 0
+    ? feedback.filter(f => f.accepted).length / feedback.length
+    : 0;
+
+  return {
+    hasPattern: !!pattern,
+    totalPostsAnalyzed: pattern?.totalPostsAnalyzed || 0,
+    feedbackCount: feedback.length,
+    avgRating: avgRating.toFixed(1),
+    acceptanceRate: (acceptanceRate * 100).toFixed(0) + '%',
+    topStarters: pattern?.commonStarters || [],
+    avgSentenceLength: pattern?.avgSentenceLength?.toFixed(1) || 0,
+    formalityScore: pattern?.formalityScore?.toFixed(1) || 0,
+  };
+}
+
 }
