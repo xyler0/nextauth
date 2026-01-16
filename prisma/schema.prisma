@@ -55,11 +55,74 @@ model User {
   
   posts          Post[]
   journalEntries JournalEntry[]
-  
+  trainingFeedback TrainingFeedback[]
+  writingPattern WritingPattern?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
   @@index([email])
+}
+
+model WritingPattern {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Sentence structure
+  avgSentenceLength    Float    @default(0)
+  avgWordsPerSentence  Float    @default(0)
+  maxSentenceLength    Int      @default(0)
+  minSentenceLength    Int      @default(0)
+  
+  // Vocabulary
+  commonWords          Json     // { word: frequency }
+  avoidWords           Json     // Words user never uses
+  technicalTerms       Json     // Technical vocabulary
+  
+  // Style indicators
+  usesEmojis           Boolean  @default(false)
+  usesHashtags         Boolean  @default(false)
+  usesAbbreviations    Boolean  @default(false)
+  formalityScore       Float    @default(5.0) // 1-10
+  
+  // Punctuation patterns
+  commaFrequency       Float    @default(0)
+  periodFrequency      Float    @default(0)
+  dashFrequency        Float    @default(0)
+  ellipsisFrequency    Float    @default(0)
+  
+  // Sentence starters
+  commonStarters       Json     // ["Shipped", "Built", "Fixed"]
+  
+  // Examples (for reference)
+  examplePosts         Json     // Array of good examples
+  
+  // Learning metadata
+  totalPostsAnalyzed   Int      @default(0)
+  lastUpdated          DateTime @updatedAt
+  createdAt            DateTime @default(now())
+  
+  @@index([userId])
+}
+
+model TrainingFeedback {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  originalText    String   @db.Text
+  generatedText   String   @db.Text
+  editedText      String?  @db.Text  // What user changed it to
+  
+  rating          Int      // 1-5 stars
+  feedback        String?  @db.Text  // Optional comment
+  
+  accepted        Boolean  @default(false)
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([userId, createdAt])
 }
 
 // Post model to link to user
