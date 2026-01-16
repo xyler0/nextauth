@@ -20,6 +20,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PostsModule } from './modules/posts/post.module';
 import { UserModule } from './modules/user/user.module';
+import { PatternModule } from './modules/pattern/pattern.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { UserModule } from './modules/user/user.module';
     AuthModule,
     PostsModule,
     UserModule,
+    PatternModule,
   ],
   controllers: [AppController],
   providers: [
