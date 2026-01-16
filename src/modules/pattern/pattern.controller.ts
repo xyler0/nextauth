@@ -16,6 +16,7 @@ import {
 import { PatternService } from './pattern.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { ImportPostsDto } from './dto/import-posts.dto';
+import { SubmitFeedbackDto } from './dto/feedback.dto';
 
 @ApiTags('pattern')
 @Controller('pattern')
@@ -97,4 +98,63 @@ export class PatternController {
     const prompt = await this.patternService.generatePersonalizedPrompt(user.id);
     return { prompt };
   }
+
+  @Post('feedback')
+@HttpCode(HttpStatus.CREATED)
+@ApiOperation({
+  summary: 'Submit feedback on generated post',
+  description: 'Help improve your writing pattern by rating posts',
+})
+@ApiResponse({ status: 201, description: 'Feedback recorded' })
+async submitFeedback(
+  @Body() dto: SubmitFeedbackDto,
+  @CurrentUser() user: any,
+) {
+  // Save feedback
+  const feedback = await this.prisma.trainingFeedback.create({
+    data: {
+      userId: user.id,
+      originalText: dto.originalText,
+      generatedText: dto.generatedText,
+      editedText: dto.editedText,
+      rating: dto.rating,
+      feedback: dto.feedback,
+      accepted: dto.accepted,
+    },
+  });
+
+  // If user edited the text, learn from their edit
+  if (dto.editedText && dto.accepted) {
+    await this.patternService.learnFromText(user.id, dto.editedText);
+    this.logger.log(`Learned from user edit for user ${user.id}`);
+  }
+
+  return {
+    message: 'Feedback recorded. Thank you!',
+    feedbackId: feedback.id,
+  };
+}
+
+@Get('feedback')
+@ApiOperation({ summary: 'Get your feedback history' })
+@ApiResponse({ status: 200, description: 'Feedback history' })
+async getFeedback(@CurrentUser() user: any) {
+  const feedback = await this.prisma.trainingFeedback.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: 'desc' },
+    take: 50,
+    select: {
+      id: true,
+      originalText: true,
+      generatedText: true,
+      editedText: true,
+      rating: true,
+      feedback: true,
+      accepted: true,
+      createdAt: true,
+    },
+  });
+
+  return { feedback };
+}
 }
