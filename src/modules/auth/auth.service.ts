@@ -75,8 +75,17 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Verify password
-    const isValid = await bcrypt.compare(dto.password, user.password);
+      // Verify password
+if (!user.password) {
+  // OAuth users don't have a password
+  throw new UnauthorizedException('Password login not available for OAuth user');
+}
+
+const isValid = await bcrypt.compare(dto.password, user.password);
+if (!isValid) {
+  throw new UnauthorizedException('Invalid credentials');
+}
+
     if (!isValid) {
       throw new UnauthorizedException('Invalid credentials');
     }

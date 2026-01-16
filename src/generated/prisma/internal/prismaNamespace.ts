@@ -386,6 +386,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   PostingStats: 'PostingStats',
   User: 'User',
+  WritingPattern: 'WritingPattern',
+  TrainingFeedback: 'TrainingFeedback',
   Post: 'Post',
   JournalEntry: 'JournalEntry'
 } as const
@@ -403,7 +405,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "postingStats" | "user" | "post" | "journalEntry"
+    modelProps: "postingStats" | "user" | "writingPattern" | "trainingFeedback" | "post" | "journalEntry"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -552,6 +554,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.UserCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.UserCountAggregateOutputType> | number
+        }
+      }
+    }
+    WritingPattern: {
+      payload: Prisma.$WritingPatternPayload<ExtArgs>
+      fields: Prisma.WritingPatternFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.WritingPatternFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WritingPatternPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.WritingPatternFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WritingPatternPayload>
+        }
+        findFirst: {
+          args: Prisma.WritingPatternFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WritingPatternPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.WritingPatternFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WritingPatternPayload>
+        }
+        findMany: {
+          args: Prisma.WritingPatternFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WritingPatternPayload>[]
+        }
+        create: {
+          args: Prisma.WritingPatternCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WritingPatternPayload>
+        }
+        createMany: {
+          args: Prisma.WritingPatternCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.WritingPatternCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WritingPatternPayload>[]
+        }
+        delete: {
+          args: Prisma.WritingPatternDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WritingPatternPayload>
+        }
+        update: {
+          args: Prisma.WritingPatternUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WritingPatternPayload>
+        }
+        deleteMany: {
+          args: Prisma.WritingPatternDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.WritingPatternUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.WritingPatternUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WritingPatternPayload>[]
+        }
+        upsert: {
+          args: Prisma.WritingPatternUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WritingPatternPayload>
+        }
+        aggregate: {
+          args: Prisma.WritingPatternAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateWritingPattern>
+        }
+        groupBy: {
+          args: Prisma.WritingPatternGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WritingPatternGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.WritingPatternCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WritingPatternCountAggregateOutputType> | number
+        }
+      }
+    }
+    TrainingFeedback: {
+      payload: Prisma.$TrainingFeedbackPayload<ExtArgs>
+      fields: Prisma.TrainingFeedbackFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TrainingFeedbackFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrainingFeedbackPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TrainingFeedbackFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrainingFeedbackPayload>
+        }
+        findFirst: {
+          args: Prisma.TrainingFeedbackFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrainingFeedbackPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TrainingFeedbackFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrainingFeedbackPayload>
+        }
+        findMany: {
+          args: Prisma.TrainingFeedbackFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrainingFeedbackPayload>[]
+        }
+        create: {
+          args: Prisma.TrainingFeedbackCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrainingFeedbackPayload>
+        }
+        createMany: {
+          args: Prisma.TrainingFeedbackCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TrainingFeedbackCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrainingFeedbackPayload>[]
+        }
+        delete: {
+          args: Prisma.TrainingFeedbackDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrainingFeedbackPayload>
+        }
+        update: {
+          args: Prisma.TrainingFeedbackUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrainingFeedbackPayload>
+        }
+        deleteMany: {
+          args: Prisma.TrainingFeedbackDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TrainingFeedbackUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TrainingFeedbackUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrainingFeedbackPayload>[]
+        }
+        upsert: {
+          args: Prisma.TrainingFeedbackUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrainingFeedbackPayload>
+        }
+        aggregate: {
+          args: Prisma.TrainingFeedbackAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTrainingFeedback>
+        }
+        groupBy: {
+          args: Prisma.TrainingFeedbackGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TrainingFeedbackGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TrainingFeedbackCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TrainingFeedbackCountAggregateOutputType> | number
         }
       }
     }
@@ -777,6 +927,49 @@ export const UserScalarFieldEnum = {
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+export const WritingPatternScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  avgSentenceLength: 'avgSentenceLength',
+  avgWordsPerSentence: 'avgWordsPerSentence',
+  maxSentenceLength: 'maxSentenceLength',
+  minSentenceLength: 'minSentenceLength',
+  commonWords: 'commonWords',
+  avoidWords: 'avoidWords',
+  technicalTerms: 'technicalTerms',
+  usesEmojis: 'usesEmojis',
+  usesHashtags: 'usesHashtags',
+  usesAbbreviations: 'usesAbbreviations',
+  formalityScore: 'formalityScore',
+  commaFrequency: 'commaFrequency',
+  periodFrequency: 'periodFrequency',
+  dashFrequency: 'dashFrequency',
+  ellipsisFrequency: 'ellipsisFrequency',
+  commonStarters: 'commonStarters',
+  examplePosts: 'examplePosts',
+  totalPostsAnalyzed: 'totalPostsAnalyzed',
+  lastUpdated: 'lastUpdated',
+  createdAt: 'createdAt'
+} as const
+
+export type WritingPatternScalarFieldEnum = (typeof WritingPatternScalarFieldEnum)[keyof typeof WritingPatternScalarFieldEnum]
+
+
+export const TrainingFeedbackScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  originalText: 'originalText',
+  generatedText: 'generatedText',
+  editedText: 'editedText',
+  rating: 'rating',
+  feedback: 'feedback',
+  accepted: 'accepted',
+  createdAt: 'createdAt'
+} as const
+
+export type TrainingFeedbackScalarFieldEnum = (typeof TrainingFeedbackScalarFieldEnum)[keyof typeof TrainingFeedbackScalarFieldEnum]
+
+
 export const PostScalarFieldEnum = {
   id: 'id',
   content: 'content',
@@ -812,6 +1005,13 @@ export const SortOrder = {
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const NullableJsonNullValueInput = {
@@ -896,23 +1096,16 @@ export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
- * Reference to a field of type 'PostSource'
+ * Reference to a field of type 'Float'
  */
-export type EnumPostSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PostSource'>
+export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
     
 
 
 /**
- * Reference to a field of type 'PostSource[]'
+ * Reference to a field of type 'Float[]'
  */
-export type ListEnumPostSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PostSource[]'>
-    
-
-
-/**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
 
 
@@ -931,16 +1124,23 @@ export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prisma
 
 
 /**
- * Reference to a field of type 'Float'
+ * Reference to a field of type 'Boolean'
  */
-export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
 /**
- * Reference to a field of type 'Float[]'
+ * Reference to a field of type 'PostSource'
  */
-export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+export type EnumPostSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PostSource'>
+    
+
+
+/**
+ * Reference to a field of type 'PostSource[]'
+ */
+export type ListEnumPostSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PostSource[]'>
     
 
 /**
@@ -1040,6 +1240,8 @@ export type PrismaClientOptions = ({
 export type GlobalOmitConfig = {
   postingStats?: Prisma.PostingStatsOmit
   user?: Prisma.UserOmit
+  writingPattern?: Prisma.WritingPatternOmit
+  trainingFeedback?: Prisma.TrainingFeedbackOmit
   post?: Prisma.PostOmit
   journalEntry?: Prisma.JournalEntryOmit
 }

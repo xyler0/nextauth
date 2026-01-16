@@ -10,6 +10,8 @@
  */
 export type * from './models/PostingStats'
 export type * from './models/User'
+export type * from './models/WritingPattern'
+export type * from './models/TrainingFeedback'
 export type * from './models/Post'
 export type * from './models/JournalEntry'
 export type * from './commonInputTypes'

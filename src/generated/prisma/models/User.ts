@@ -256,7 +256,7 @@ export type UserGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
 export type UserGroupByOutputType = {
   id: string
   email: string
-  password: string
+  password: string | null
   name: string | null
   githubId: string | null
   githubAccessToken: string | null
@@ -300,7 +300,7 @@ export type UserWhereInput = {
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   id?: Prisma.StringFilter<"User"> | string
   email?: Prisma.StringFilter<"User"> | string
-  password?: Prisma.StringFilter<"User"> | string
+  password?: Prisma.StringNullableFilter<"User"> | string | null
   name?: Prisma.StringNullableFilter<"User"> | string | null
   githubId?: Prisma.StringNullableFilter<"User"> | string | null
   githubAccessToken?: Prisma.StringNullableFilter<"User"> | string | null
@@ -318,12 +318,14 @@ export type UserWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   posts?: Prisma.PostListRelationFilter
   journalEntries?: Prisma.JournalEntryListRelationFilter
+  trainingFeedback?: Prisma.TrainingFeedbackListRelationFilter
+  writingPattern?: Prisma.XOR<Prisma.WritingPatternNullableScalarRelationFilter, Prisma.WritingPatternWhereInput> | null
 }
 
 export type UserOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
-  password?: Prisma.SortOrder
+  password?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrderInput | Prisma.SortOrder
   githubId?: Prisma.SortOrderInput | Prisma.SortOrder
   githubAccessToken?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -341,6 +343,8 @@ export type UserOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   posts?: Prisma.PostOrderByRelationAggregateInput
   journalEntries?: Prisma.JournalEntryOrderByRelationAggregateInput
+  trainingFeedback?: Prisma.TrainingFeedbackOrderByRelationAggregateInput
+  writingPattern?: Prisma.WritingPatternOrderByWithRelationInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -351,7 +355,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
-  password?: Prisma.StringFilter<"User"> | string
+  password?: Prisma.StringNullableFilter<"User"> | string | null
   name?: Prisma.StringNullableFilter<"User"> | string | null
   githubAccessToken?: Prisma.StringNullableFilter<"User"> | string | null
   githubUsername?: Prisma.StringNullableFilter<"User"> | string | null
@@ -367,12 +371,14 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   posts?: Prisma.PostListRelationFilter
   journalEntries?: Prisma.JournalEntryListRelationFilter
+  trainingFeedback?: Prisma.TrainingFeedbackListRelationFilter
+  writingPattern?: Prisma.XOR<Prisma.WritingPatternNullableScalarRelationFilter, Prisma.WritingPatternWhereInput> | null
 }, "id" | "email" | "githubId" | "xId">
 
 export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
-  password?: Prisma.SortOrder
+  password?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrderInput | Prisma.SortOrder
   githubId?: Prisma.SortOrderInput | Prisma.SortOrder
   githubAccessToken?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -401,7 +407,7 @@ export type UserScalarWhereWithAggregatesInput = {
   NOT?: Prisma.UserScalarWhereWithAggregatesInput | Prisma.UserScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"User"> | string
   email?: Prisma.StringWithAggregatesFilter<"User"> | string
-  password?: Prisma.StringWithAggregatesFilter<"User"> | string
+  password?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   name?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   githubId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   githubAccessToken?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
@@ -422,7 +428,7 @@ export type UserScalarWhereWithAggregatesInput = {
 export type UserCreateInput = {
   id?: string
   email: string
-  password: string
+  password?: string | null
   name?: string | null
   githubId?: string | null
   githubAccessToken?: string | null
@@ -440,12 +446,14 @@ export type UserCreateInput = {
   updatedAt?: Date | string
   posts?: Prisma.PostCreateNestedManyWithoutUserInput
   journalEntries?: Prisma.JournalEntryCreateNestedManyWithoutUserInput
+  trainingFeedback?: Prisma.TrainingFeedbackCreateNestedManyWithoutUserInput
+  writingPattern?: Prisma.WritingPatternCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
   id?: string
   email: string
-  password: string
+  password?: string | null
   name?: string | null
   githubId?: string | null
   githubAccessToken?: string | null
@@ -463,12 +471,14 @@ export type UserUncheckedCreateInput = {
   updatedAt?: Date | string
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutUserInput
   journalEntries?: Prisma.JournalEntryUncheckedCreateNestedManyWithoutUserInput
+  trainingFeedback?: Prisma.TrainingFeedbackUncheckedCreateNestedManyWithoutUserInput
+  writingPattern?: Prisma.WritingPatternUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -486,12 +496,14 @@ export type UserUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   posts?: Prisma.PostUpdateManyWithoutUserNestedInput
   journalEntries?: Prisma.JournalEntryUpdateManyWithoutUserNestedInput
+  trainingFeedback?: Prisma.TrainingFeedbackUpdateManyWithoutUserNestedInput
+  writingPattern?: Prisma.WritingPatternUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -509,12 +521,14 @@ export type UserUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   posts?: Prisma.PostUncheckedUpdateManyWithoutUserNestedInput
   journalEntries?: Prisma.JournalEntryUncheckedUpdateManyWithoutUserNestedInput
+  trainingFeedback?: Prisma.TrainingFeedbackUncheckedUpdateManyWithoutUserNestedInput
+  writingPattern?: Prisma.WritingPatternUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
   id?: string
   email: string
-  password: string
+  password?: string | null
   name?: string | null
   githubId?: string | null
   githubAccessToken?: string | null
@@ -535,7 +549,7 @@ export type UserCreateManyInput = {
 export type UserUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -556,7 +570,7 @@ export type UserUpdateManyMutationInput = {
 export type UserUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -669,6 +683,34 @@ export type UserUpdategithubReposInput = {
   push?: string | string[]
 }
 
+export type UserCreateNestedOneWithoutWritingPatternInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutWritingPatternInput, Prisma.UserUncheckedCreateWithoutWritingPatternInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutWritingPatternInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutWritingPatternNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutWritingPatternInput, Prisma.UserUncheckedCreateWithoutWritingPatternInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutWritingPatternInput
+  upsert?: Prisma.UserUpsertWithoutWritingPatternInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutWritingPatternInput, Prisma.UserUpdateWithoutWritingPatternInput>, Prisma.UserUncheckedUpdateWithoutWritingPatternInput>
+}
+
+export type UserCreateNestedOneWithoutTrainingFeedbackInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTrainingFeedbackInput, Prisma.UserUncheckedCreateWithoutTrainingFeedbackInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTrainingFeedbackInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutTrainingFeedbackNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTrainingFeedbackInput, Prisma.UserUncheckedCreateWithoutTrainingFeedbackInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTrainingFeedbackInput
+  upsert?: Prisma.UserUpsertWithoutTrainingFeedbackInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTrainingFeedbackInput, Prisma.UserUpdateWithoutTrainingFeedbackInput>, Prisma.UserUncheckedUpdateWithoutTrainingFeedbackInput>
+}
+
 export type UserCreateNestedOneWithoutPostsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutPostsInput, Prisma.UserUncheckedCreateWithoutPostsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutPostsInput
@@ -697,10 +739,234 @@ export type UserUpdateOneRequiredWithoutJournalEntriesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutJournalEntriesInput, Prisma.UserUpdateWithoutJournalEntriesInput>, Prisma.UserUncheckedUpdateWithoutJournalEntriesInput>
 }
 
+export type UserCreateWithoutWritingPatternInput = {
+  id?: string
+  email: string
+  password?: string | null
+  name?: string | null
+  githubId?: string | null
+  githubAccessToken?: string | null
+  githubUsername?: string | null
+  githubRepos?: Prisma.UserCreategithubReposInput | string[]
+  xId?: string | null
+  xUsername?: string | null
+  xAccessToken?: string | null
+  xAccessSecret?: string | null
+  xApiKey?: string | null
+  xApiSecret?: string | null
+  maxPostsPerDay?: number
+  timezone?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  posts?: Prisma.PostCreateNestedManyWithoutUserInput
+  journalEntries?: Prisma.JournalEntryCreateNestedManyWithoutUserInput
+  trainingFeedback?: Prisma.TrainingFeedbackCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutWritingPatternInput = {
+  id?: string
+  email: string
+  password?: string | null
+  name?: string | null
+  githubId?: string | null
+  githubAccessToken?: string | null
+  githubUsername?: string | null
+  githubRepos?: Prisma.UserCreategithubReposInput | string[]
+  xId?: string | null
+  xUsername?: string | null
+  xAccessToken?: string | null
+  xAccessSecret?: string | null
+  xApiKey?: string | null
+  xApiSecret?: string | null
+  maxPostsPerDay?: number
+  timezone?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  posts?: Prisma.PostUncheckedCreateNestedManyWithoutUserInput
+  journalEntries?: Prisma.JournalEntryUncheckedCreateNestedManyWithoutUserInput
+  trainingFeedback?: Prisma.TrainingFeedbackUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutWritingPatternInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutWritingPatternInput, Prisma.UserUncheckedCreateWithoutWritingPatternInput>
+}
+
+export type UserUpsertWithoutWritingPatternInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutWritingPatternInput, Prisma.UserUncheckedUpdateWithoutWritingPatternInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutWritingPatternInput, Prisma.UserUncheckedCreateWithoutWritingPatternInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutWritingPatternInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutWritingPatternInput, Prisma.UserUncheckedUpdateWithoutWritingPatternInput>
+}
+
+export type UserUpdateWithoutWritingPatternInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubRepos?: Prisma.UserUpdategithubReposInput | string[]
+  xId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xAccessSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xApiSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxPostsPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  posts?: Prisma.PostUpdateManyWithoutUserNestedInput
+  journalEntries?: Prisma.JournalEntryUpdateManyWithoutUserNestedInput
+  trainingFeedback?: Prisma.TrainingFeedbackUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutWritingPatternInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubRepos?: Prisma.UserUpdategithubReposInput | string[]
+  xId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xAccessSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xApiSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxPostsPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  posts?: Prisma.PostUncheckedUpdateManyWithoutUserNestedInput
+  journalEntries?: Prisma.JournalEntryUncheckedUpdateManyWithoutUserNestedInput
+  trainingFeedback?: Prisma.TrainingFeedbackUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutTrainingFeedbackInput = {
+  id?: string
+  email: string
+  password?: string | null
+  name?: string | null
+  githubId?: string | null
+  githubAccessToken?: string | null
+  githubUsername?: string | null
+  githubRepos?: Prisma.UserCreategithubReposInput | string[]
+  xId?: string | null
+  xUsername?: string | null
+  xAccessToken?: string | null
+  xAccessSecret?: string | null
+  xApiKey?: string | null
+  xApiSecret?: string | null
+  maxPostsPerDay?: number
+  timezone?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  posts?: Prisma.PostCreateNestedManyWithoutUserInput
+  journalEntries?: Prisma.JournalEntryCreateNestedManyWithoutUserInput
+  writingPattern?: Prisma.WritingPatternCreateNestedOneWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutTrainingFeedbackInput = {
+  id?: string
+  email: string
+  password?: string | null
+  name?: string | null
+  githubId?: string | null
+  githubAccessToken?: string | null
+  githubUsername?: string | null
+  githubRepos?: Prisma.UserCreategithubReposInput | string[]
+  xId?: string | null
+  xUsername?: string | null
+  xAccessToken?: string | null
+  xAccessSecret?: string | null
+  xApiKey?: string | null
+  xApiSecret?: string | null
+  maxPostsPerDay?: number
+  timezone?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  posts?: Prisma.PostUncheckedCreateNestedManyWithoutUserInput
+  journalEntries?: Prisma.JournalEntryUncheckedCreateNestedManyWithoutUserInput
+  writingPattern?: Prisma.WritingPatternUncheckedCreateNestedOneWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutTrainingFeedbackInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutTrainingFeedbackInput, Prisma.UserUncheckedCreateWithoutTrainingFeedbackInput>
+}
+
+export type UserUpsertWithoutTrainingFeedbackInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutTrainingFeedbackInput, Prisma.UserUncheckedUpdateWithoutTrainingFeedbackInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutTrainingFeedbackInput, Prisma.UserUncheckedCreateWithoutTrainingFeedbackInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutTrainingFeedbackInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutTrainingFeedbackInput, Prisma.UserUncheckedUpdateWithoutTrainingFeedbackInput>
+}
+
+export type UserUpdateWithoutTrainingFeedbackInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubRepos?: Prisma.UserUpdategithubReposInput | string[]
+  xId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xAccessSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xApiSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxPostsPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  posts?: Prisma.PostUpdateManyWithoutUserNestedInput
+  journalEntries?: Prisma.JournalEntryUpdateManyWithoutUserNestedInput
+  writingPattern?: Prisma.WritingPatternUpdateOneWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutTrainingFeedbackInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  githubRepos?: Prisma.UserUpdategithubReposInput | string[]
+  xId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xAccessSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xApiSecret?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxPostsPerDay?: Prisma.IntFieldUpdateOperationsInput | number
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  posts?: Prisma.PostUncheckedUpdateManyWithoutUserNestedInput
+  journalEntries?: Prisma.JournalEntryUncheckedUpdateManyWithoutUserNestedInput
+  writingPattern?: Prisma.WritingPatternUncheckedUpdateOneWithoutUserNestedInput
+}
+
 export type UserCreateWithoutPostsInput = {
   id?: string
   email: string
-  password: string
+  password?: string | null
   name?: string | null
   githubId?: string | null
   githubAccessToken?: string | null
@@ -717,12 +983,14 @@ export type UserCreateWithoutPostsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   journalEntries?: Prisma.JournalEntryCreateNestedManyWithoutUserInput
+  trainingFeedback?: Prisma.TrainingFeedbackCreateNestedManyWithoutUserInput
+  writingPattern?: Prisma.WritingPatternCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPostsInput = {
   id?: string
   email: string
-  password: string
+  password?: string | null
   name?: string | null
   githubId?: string | null
   githubAccessToken?: string | null
@@ -739,6 +1007,8 @@ export type UserUncheckedCreateWithoutPostsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   journalEntries?: Prisma.JournalEntryUncheckedCreateNestedManyWithoutUserInput
+  trainingFeedback?: Prisma.TrainingFeedbackUncheckedCreateNestedManyWithoutUserInput
+  writingPattern?: Prisma.WritingPatternUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPostsInput = {
@@ -760,7 +1030,7 @@ export type UserUpdateToOneWithWhereWithoutPostsInput = {
 export type UserUpdateWithoutPostsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -777,12 +1047,14 @@ export type UserUpdateWithoutPostsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   journalEntries?: Prisma.JournalEntryUpdateManyWithoutUserNestedInput
+  trainingFeedback?: Prisma.TrainingFeedbackUpdateManyWithoutUserNestedInput
+  writingPattern?: Prisma.WritingPatternUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPostsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -799,12 +1071,14 @@ export type UserUncheckedUpdateWithoutPostsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   journalEntries?: Prisma.JournalEntryUncheckedUpdateManyWithoutUserNestedInput
+  trainingFeedback?: Prisma.TrainingFeedbackUncheckedUpdateManyWithoutUserNestedInput
+  writingPattern?: Prisma.WritingPatternUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutJournalEntriesInput = {
   id?: string
   email: string
-  password: string
+  password?: string | null
   name?: string | null
   githubId?: string | null
   githubAccessToken?: string | null
@@ -821,12 +1095,14 @@ export type UserCreateWithoutJournalEntriesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   posts?: Prisma.PostCreateNestedManyWithoutUserInput
+  trainingFeedback?: Prisma.TrainingFeedbackCreateNestedManyWithoutUserInput
+  writingPattern?: Prisma.WritingPatternCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutJournalEntriesInput = {
   id?: string
   email: string
-  password: string
+  password?: string | null
   name?: string | null
   githubId?: string | null
   githubAccessToken?: string | null
@@ -843,6 +1119,8 @@ export type UserUncheckedCreateWithoutJournalEntriesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   posts?: Prisma.PostUncheckedCreateNestedManyWithoutUserInput
+  trainingFeedback?: Prisma.TrainingFeedbackUncheckedCreateNestedManyWithoutUserInput
+  writingPattern?: Prisma.WritingPatternUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutJournalEntriesInput = {
@@ -864,7 +1142,7 @@ export type UserUpdateToOneWithWhereWithoutJournalEntriesInput = {
 export type UserUpdateWithoutJournalEntriesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -881,12 +1159,14 @@ export type UserUpdateWithoutJournalEntriesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   posts?: Prisma.PostUpdateManyWithoutUserNestedInput
+  trainingFeedback?: Prisma.TrainingFeedbackUpdateManyWithoutUserNestedInput
+  writingPattern?: Prisma.WritingPatternUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutJournalEntriesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   githubAccessToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -903,6 +1183,8 @@ export type UserUncheckedUpdateWithoutJournalEntriesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   posts?: Prisma.PostUncheckedUpdateManyWithoutUserNestedInput
+  trainingFeedback?: Prisma.TrainingFeedbackUncheckedUpdateManyWithoutUserNestedInput
+  writingPattern?: Prisma.WritingPatternUncheckedUpdateOneWithoutUserNestedInput
 }
 
 
@@ -913,11 +1195,13 @@ export type UserUncheckedUpdateWithoutJournalEntriesInput = {
 export type UserCountOutputType = {
   posts: number
   journalEntries: number
+  trainingFeedback: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   posts?: boolean | UserCountOutputTypeCountPostsArgs
   journalEntries?: boolean | UserCountOutputTypeCountJournalEntriesArgs
+  trainingFeedback?: boolean | UserCountOutputTypeCountTrainingFeedbackArgs
 }
 
 /**
@@ -944,6 +1228,13 @@ export type UserCountOutputTypeCountJournalEntriesArgs<ExtArgs extends runtime.T
   where?: Prisma.JournalEntryWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountTrainingFeedbackArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TrainingFeedbackWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -966,6 +1257,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   updatedAt?: boolean
   posts?: boolean | Prisma.User$postsArgs<ExtArgs>
   journalEntries?: boolean | Prisma.User$journalEntriesArgs<ExtArgs>
+  trainingFeedback?: boolean | Prisma.User$trainingFeedbackArgs<ExtArgs>
+  writingPattern?: boolean | Prisma.User$writingPatternArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1036,6 +1329,8 @@ export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = run
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   posts?: boolean | Prisma.User$postsArgs<ExtArgs>
   journalEntries?: boolean | Prisma.User$journalEntriesArgs<ExtArgs>
+  trainingFeedback?: boolean | Prisma.User$trainingFeedbackArgs<ExtArgs>
+  writingPattern?: boolean | Prisma.User$writingPatternArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1046,11 +1341,13 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   objects: {
     posts: Prisma.$PostPayload<ExtArgs>[]
     journalEntries: Prisma.$JournalEntryPayload<ExtArgs>[]
+    trainingFeedback: Prisma.$TrainingFeedbackPayload<ExtArgs>[]
+    writingPattern: Prisma.$WritingPatternPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     email: string
-    password: string
+    password: string | null
     name: string | null
     githubId: string | null
     githubAccessToken: string | null
@@ -1462,6 +1759,8 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   readonly [Symbol.toStringTag]: "PrismaPromise"
   posts<T extends Prisma.User$postsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$postsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PostPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   journalEntries<T extends Prisma.User$journalEntriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$journalEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$JournalEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  trainingFeedback<T extends Prisma.User$trainingFeedbackArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$trainingFeedbackArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TrainingFeedbackPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  writingPattern<T extends Prisma.User$writingPatternArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$writingPatternArgs<ExtArgs>>): Prisma.Prisma__WritingPatternClient<runtime.Types.Result.GetResult<Prisma.$WritingPatternPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1942,6 +2241,49 @@ export type User$journalEntriesArgs<ExtArgs extends runtime.Types.Extensions.Int
   take?: number
   skip?: number
   distinct?: Prisma.JournalEntryScalarFieldEnum | Prisma.JournalEntryScalarFieldEnum[]
+}
+
+/**
+ * User.trainingFeedback
+ */
+export type User$trainingFeedbackArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TrainingFeedback
+   */
+  select?: Prisma.TrainingFeedbackSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TrainingFeedback
+   */
+  omit?: Prisma.TrainingFeedbackOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TrainingFeedbackInclude<ExtArgs> | null
+  where?: Prisma.TrainingFeedbackWhereInput
+  orderBy?: Prisma.TrainingFeedbackOrderByWithRelationInput | Prisma.TrainingFeedbackOrderByWithRelationInput[]
+  cursor?: Prisma.TrainingFeedbackWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TrainingFeedbackScalarFieldEnum | Prisma.TrainingFeedbackScalarFieldEnum[]
+}
+
+/**
+ * User.writingPattern
+ */
+export type User$writingPatternArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the WritingPattern
+   */
+  select?: Prisma.WritingPatternSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the WritingPattern
+   */
+  omit?: Prisma.WritingPatternOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WritingPatternInclude<ExtArgs> | null
+  where?: Prisma.WritingPatternWhereInput
 }
 
 /**

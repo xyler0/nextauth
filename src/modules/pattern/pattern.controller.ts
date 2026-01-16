@@ -17,6 +17,7 @@ import { PatternService } from './pattern.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { ImportPostsDto } from './dto/import-posts.dto';
 import { SubmitFeedbackDto } from './dto/feedback.dto';
+import { PrismaService } from '../../database/prisma.service';
 
 @ApiTags('pattern')
 @Controller('pattern')
@@ -24,7 +25,10 @@ import { SubmitFeedbackDto } from './dto/feedback.dto';
 export class PatternController {
   private readonly logger = new Logger(PatternController.name);
 
-  constructor(private readonly patternService: PatternService) {}
+  constructor(
+    private readonly patternService: PatternService,
+    private readonly prisma: PrismaService
+  ) {}
 
   @Post('import')
   @HttpCode(HttpStatus.OK)
@@ -45,6 +49,8 @@ export class PatternController {
     }
 
     const pattern = await this.patternService.getPattern(user.id);
+    if (!pattern) return { avgSentenceLength: 0, formalityScore: 0, totalPostsAnalyzed: 0, commonStarters: [] };
+
 
     return {
       message: `Learned from ${dto.posts.length} posts`,

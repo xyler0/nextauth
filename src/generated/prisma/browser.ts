@@ -28,6 +28,16 @@ export type PostingStats = Prisma.PostingStatsModel
  */
 export type User = Prisma.UserModel
 /**
+ * Model WritingPattern
+ * 
+ */
+export type WritingPattern = Prisma.WritingPatternModel
+/**
+ * Model TrainingFeedback
+ * 
+ */
+export type TrainingFeedback = Prisma.TrainingFeedbackModel
+/**
  * Model Post
  * 
  */

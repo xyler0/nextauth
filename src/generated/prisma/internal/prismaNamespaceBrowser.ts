@@ -53,6 +53,8 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   PostingStats: 'PostingStats',
   User: 'User',
+  WritingPattern: 'WritingPattern',
+  TrainingFeedback: 'TrainingFeedback',
   Post: 'Post',
   JournalEntry: 'JournalEntry'
 } as const
@@ -108,6 +110,49 @@ export const UserScalarFieldEnum = {
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+export const WritingPatternScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  avgSentenceLength: 'avgSentenceLength',
+  avgWordsPerSentence: 'avgWordsPerSentence',
+  maxSentenceLength: 'maxSentenceLength',
+  minSentenceLength: 'minSentenceLength',
+  commonWords: 'commonWords',
+  avoidWords: 'avoidWords',
+  technicalTerms: 'technicalTerms',
+  usesEmojis: 'usesEmojis',
+  usesHashtags: 'usesHashtags',
+  usesAbbreviations: 'usesAbbreviations',
+  formalityScore: 'formalityScore',
+  commaFrequency: 'commaFrequency',
+  periodFrequency: 'periodFrequency',
+  dashFrequency: 'dashFrequency',
+  ellipsisFrequency: 'ellipsisFrequency',
+  commonStarters: 'commonStarters',
+  examplePosts: 'examplePosts',
+  totalPostsAnalyzed: 'totalPostsAnalyzed',
+  lastUpdated: 'lastUpdated',
+  createdAt: 'createdAt'
+} as const
+
+export type WritingPatternScalarFieldEnum = (typeof WritingPatternScalarFieldEnum)[keyof typeof WritingPatternScalarFieldEnum]
+
+
+export const TrainingFeedbackScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  originalText: 'originalText',
+  generatedText: 'generatedText',
+  editedText: 'editedText',
+  rating: 'rating',
+  feedback: 'feedback',
+  accepted: 'accepted',
+  createdAt: 'createdAt'
+} as const
+
+export type TrainingFeedbackScalarFieldEnum = (typeof TrainingFeedbackScalarFieldEnum)[keyof typeof TrainingFeedbackScalarFieldEnum]
+
+
 export const PostScalarFieldEnum = {
   id: 'id',
   content: 'content',
@@ -143,6 +188,13 @@ export const SortOrder = {
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const JsonNullValueInput = {
+  JsonNull: 'JsonNull'
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const NullableJsonNullValueInput = {
