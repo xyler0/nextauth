@@ -13,15 +13,9 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build argument for DATABASE_URL (needed for prisma generate)
-ARG DATABASE_URL
-ENV DATABASE_URL=${DATABASE_URL}
-
 
 # Build application
 RUN npm run build
-RUN ls -R /app/dist
-
 
 # Production stage
 FROM node:22-alpine AS production
@@ -38,9 +32,6 @@ RUN npm ci --omit=dev
 COPY --from=builder /app/dist/src ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/prisma ./prisma
-
-# Expose port
-EXPOSE 3000
 
 # Start application (adjust path based on your actual build structure)
 CMD ["node", "dist/main.js"]
