@@ -21,7 +21,7 @@ async function bootstrap() {
   // Session configuration
   app.use(
     session({
-      secret: process.env.SESSION_SECRET || 'fallback-secret-change-in-production',
+      secret: process.env.SESSION_SECRET,
       resave: false,
       saveUninitialized: false,
       cookie: {
