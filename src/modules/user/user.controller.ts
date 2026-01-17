@@ -169,40 +169,85 @@ export class UserController {
     return { valid: isValid };
   }
    @Get('link/github')
-  @UseGuards(GitHubOAuthGuard)
-  @ApiOperation({ summary: 'Link GitHub account via OAuth' })
-  @ApiResponse({ status: 302, description: 'Redirects to GitHub' })
-  async linkGitHub() {
-    // Guard handles redirect
+  @ApiOperation({ summary: 'Link GitHub account' })
+  async linkGitHub(@CurrentUser() user: any, @Res() res: Response) {
+    // Encode userId in state parameter
+    const state = Buffer.from(JSON.stringify({ userId: user.id })).toString('base64');
+    
+    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${
+      this.config.get('GITHUB_CLIENT_ID')
+    }&redirect_uri=${encodeURIComponent(
+      this.config.get('GITHUB_CALLBACK_URL').replace('/callback', '/link-callback')
+    )}&scope=user:email,repo&state=${state}`;
+
+    res.redirect(githubAuthUrl);
   }
 
   @Get('link/github/callback')
   @UseGuards(GitHubOAuthGuard)
   @ApiOperation({ summary: 'GitHub link callback' })
-  async linkGitHubCallback(@Req() req: Request, @Res() res: Response) {
-    const user = req.user as CurrentUserType;
-    
+  async linkGitHubCallback(@Req() req: any, @Res() res: Response) {
+    const user = req.user;
     const frontendUrl = this.config.get<string>('FRONTEND_URL');
-    res.redirect(`${frontendUrl}/settings?linked=github&success=true`);
+    
+    if (user.isLinking) {
+      // Successful linking
+      res.redirect(`${frontendUrl}/settings?linked=github&success=true`);
+    } else {
+      // Regular signup/login
+      const token = this.auth.generateToken(user.id, user.email);
+      res.redirect(`${frontendUrl}/auth/callback?token=${token}&provider=github`);
+    }
   }
 
   @Get('link/twitter')
-  @UseGuards(XOAuthGuard)
-  @ApiOperation({ summary: 'Link Twitter account via OAuth' })
-  @ApiResponse({ status: 302, description: 'Redirects to Twitter' })
-  async linkTwitter() {
-  }
+@ApiOperation({ summary: 'Link Twitter (X) account' })
+async linkTwitter(@CurrentUser() user: any, @Res() res: Response) {
+  const state = Buffer
+    .from(JSON.stringify({ userId: user.id }))
+    .toString('base64');
+
+  const clientId = this.config.get<string>('TWITTER_CLIENT_ID')!;
+  const redirectUri = encodeURIComponent(
+    this.config.get<string>('TWITTER_CALLBACK_URL')!,
+  );
+
+  const scope = encodeURIComponent(
+    'tweet.read tweet.write users.read offline.access',
+  );
+
+  const twitterAuthUrl =
+    `https://twitter.com/i/oauth2/authorize` +
+    `?response_type=code` +
+    `&client_id=${clientId}` +
+    `&redirect_uri=${redirectUri}` +
+    `&scope=${scope}` +
+    `&state=${state}` +
+    `&code_challenge=challenge` +
+    `&code_challenge_method=plain`;
+
+  res.redirect(twitterAuthUrl);
+}
   
+
   @Get('link/twitter/callback')
   @UseGuards(XOAuthGuard)
   @ApiOperation({ summary: 'Twitter link callback' })
-  async linkTwitterCallback(@Req() req: SessionRequest, @Res() res: Response) {
-    if (req.user && !req.session?.userId) {
-      const user = req.user as CurrentUserType;
-    }
-  
+  async linkTwitterCallback(@Req() req: any, @Res() res: Response) {
+    const user = req.user;
     const frontendUrl = this.config.get<string>('FRONTEND_URL');
-    res.redirect(`${frontendUrl}/settings?linked=twitter&success=true`);
+    
+    // Clear cookie
+    res.clearCookie('linkingUserId');
+    
+    if (user.isLinking) {
+      // Successful linking
+      res.redirect(`${frontendUrl}/settings?linked=twitter&success=true`);
+    } else {
+      // Regular signup/login
+      const token = this.auth.generateToken(user.id, user.email);
+      res.redirect(`${frontendUrl}/auth/callback?token=${token}&provider=twitter`);
+    }
   }
   
   @Delete('link/github')

@@ -3,54 +3,50 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from '@superfaceai/passport-twitter-oauth2';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../../database/prisma.service';
-import { Request } from 'express';
-
-type SessionRequest = Request & {
-  session?: {
-    userId?: string;
-  };
-};
-
-type XProfile = {
-  id: string;
-  username: string;
-  displayName?: string;
-  emails?: { value: string }[];
-};
 
 @Injectable()
 export class XStrategy extends PassportStrategy(Strategy, 'x') {
   private readonly logger = new Logger(XStrategy.name);
 
   constructor(
-    private readonly config: ConfigService,
-    private readonly prisma: PrismaService,
+    config: ConfigService,
+    private prisma: PrismaService,
   ) {
     super({
       clientID: config.get<string>('TWITTER_CLIENT_ID')!,
       clientSecret: config.get<string>('TWITTER_CLIENT_SECRET')!,
-      clientType: 'confidential',
       callbackURL: config.get<string>('TWITTER_CALLBACK_URL')!,
+      clientType: 'confidential',
       scope: ['tweet.read', 'tweet.write', 'users.read', 'offline.access'],
       passReqToCallback: true,
     });
   }
 
   async validate(
-    req: SessionRequest,
+    req: any,
     accessToken: string,
     refreshToken: string,
-    profile: XProfile,
+    profile: any,
   ) {
-    this.logger.log(`X OAuth callback for user: ${profile.username}`);
+    this.logger.log(`X OAuth callback for ${profile.username}`);
 
-    const email = profile.emails?.[0]?.value || `${profile.username}@twitter.placeholder`;
-    const existingUserId = req.session?.userId;
+    let linkingUserId: string | null = null;
+    const state = req.query?.state;
 
-    // Linking Twitter to an existing session user
-    if (existingUserId) {
+    if (state) {
+      try {
+        const decoded = JSON.parse(
+          Buffer.from(state, 'base64').toString('utf-8'),
+        );
+        linkingUserId = decoded.userId;
+      } catch {
+        throw new UnauthorizedException('Invalid state');
+      }
+    }
+
+    if (linkingUserId) {
       const user = await this.prisma.user.update({
-        where: { id: existingUserId },
+        where: { id: linkingUserId },
         data: {
           xId: profile.id,
           xUsername: profile.username,
@@ -58,18 +54,17 @@ export class XStrategy extends PassportStrategy(Strategy, 'x') {
           xAccessSecret: refreshToken,
         },
       });
-      this.logger.log(`Linked Twitter to user: ${user.id}`);
+
+      this.logger.log(`Linked X to user ${user.id}`);
       return user;
     }
 
-    // Find by Twitter ID
     let user = await this.prisma.user.findUnique({
       where: { xId: profile.id },
     });
 
     if (user) {
-      // Update tokens if user exists
-      user = await this.prisma.user.update({
+      return this.prisma.user.update({
         where: { id: user.id },
         data: {
           xAccessToken: accessToken,
@@ -77,34 +72,15 @@ export class XStrategy extends PassportStrategy(Strategy, 'x') {
           xUsername: profile.username,
         },
       });
-      this.logger.log(`Updated existing Twitter user: ${user.id}`);
-      return user;
     }
 
-    // Find by email if available and not placeholder
-    if (email && !email.includes('@twitter.placeholder')) {
-      user = await this.prisma.user.findUnique({ where: { email } });
-      if (user) {
-        user = await this.prisma.user.update({
-          where: { id: user.id },
-          data: {
-            xId: profile.id,
-            xUsername: profile.username,
-            xAccessToken: accessToken,
-            xAccessSecret: refreshToken,
-          },
-        });
-        this.logger.log(`Linked Twitter to existing email account: ${user.id}`);
-        return user;
-      }
-    }
+    const email = `${profile.id}@x.oauth`;
 
-    // Create new user
     user = await this.prisma.user.create({
       data: {
         email,
-        password: '', // OAuth users don't need password
-        name: profile.displayName || profile.username,
+        password: '', // OAuth-only
+        name: profile.name ?? profile.username,
         xId: profile.id,
         xUsername: profile.username,
         xAccessToken: accessToken,
@@ -112,7 +88,6 @@ export class XStrategy extends PassportStrategy(Strategy, 'x') {
       },
     });
 
-    this.logger.log(`Created new user from Twitter OAuth: ${user.id}`);
     return user;
   }
 }
