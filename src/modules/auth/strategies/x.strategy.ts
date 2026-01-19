@@ -6,7 +6,7 @@ import { PrismaService } from '../../../database/prisma.service';
 import { Request } from 'express';
 
 type SessionRequest = Request & {
-  session?: {
+  session: {
     userId?: string;
   };
 };
@@ -41,11 +41,21 @@ export class XStrategy extends PassportStrategy(Strategy, 'x') {
     accessToken: string,
     refreshToken: string,
     profile: XProfile,
+    done: any
   ) {
     this.logger.log(`X OAuth callback for user: ${profile.username}`);
 
     const email = profile.emails?.[0]?.value || `${profile.username}@twitter.placeholder`;
-    const existingUserId = req.session?.userId;
+     let existingUserId: string | undefined;
+    try {
+    const state = req.query?.state as string;
+    if (state) {
+      const decoded = JSON.parse(Buffer.from(state, 'base64').toString());
+      existingUserId = decoded.userId;
+     }
+    } catch (err) {
+    this.logger.warn('Could not parse state parameter');
+    }
 
     // Linking Twitter to an existing session user
     if (existingUserId) {
