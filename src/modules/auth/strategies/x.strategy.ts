@@ -1,3 +1,4 @@
+// src/modules/x/strategies/x.strategy.ts
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from '@superfaceai/passport-twitter-oauth2';
@@ -6,9 +7,10 @@ import { PrismaService } from '../../../database/prisma.service';
 import { Request } from 'express';
 
 type SessionRequest = Request & {
-  session: {
+  session?: {
     userId?: string;
   };
+  sessionID?: string;
 };
 
 type XProfile = {
@@ -41,24 +43,22 @@ export class XStrategy extends PassportStrategy(Strategy, 'x') {
     accessToken: string,
     refreshToken: string,
     profile: XProfile,
-    done: any
   ) {
-    this.logger.log(`X OAuth callback for user: ${profile.username}`);
+    this.logger.log('=== X Strategy Validate ===');
+    this.logger.log(`Profile username: ${profile.username}`);
+    this.logger.log(`Profile ID: ${profile.id}`);
+    this.logger.log(`Session ID: ${req.sessionID}`);
+    this.logger.log(`Session userId: ${req.session?.userId}`);
+    this.logger.log(`Session object:`, JSON.stringify(req.session));
+    this.logger.log(`Has session: ${!!req.session}`);
 
     const email = profile.emails?.[0]?.value || `${profile.username}@twitter.placeholder`;
-     let existingUserId: string | undefined;
-    try {
-    const state = req.query?.state as string;
-    if (state) {
-      const decoded = JSON.parse(Buffer.from(state, 'base64').toString());
-      existingUserId = decoded.userId;
-     }
-    } catch (err) {
-    this.logger.warn('Could not parse state parameter');
-    }
+    const existingUserId = req.session?.userId;
 
     // Linking Twitter to an existing session user
     if (existingUserId) {
+      this.logger.log(`Linking Twitter to existing user: ${existingUserId}`);
+      
       const user = await this.prisma.user.update({
         where: { id: existingUserId },
         data: {
@@ -68,9 +68,12 @@ export class XStrategy extends PassportStrategy(Strategy, 'x') {
           xAccessSecret: refreshToken,
         },
       });
-      this.logger.log(`Linked Twitter to user: ${user.id}`);
+      
+      this.logger.log(`✅ Successfully linked Twitter to user: ${user.id}`);
       return user;
     }
+
+    this.logger.log('No session userId found - proceeding with login/signup flow');
 
     // Find by Twitter ID
     let user = await this.prisma.user.findUnique({

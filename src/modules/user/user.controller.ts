@@ -47,9 +47,10 @@ interface CurrentUserType {
 }
 
 type SessionRequest = Request & {
-  session: {
+  session?: {
     userId?: string;
   };
+  sessionID?: string;
 };
 
 @UseGuards(JwtAuthGuard)
@@ -66,6 +67,52 @@ export class UserController {
     private readonly config: ConfigService,
     private readonly github: GitHubService,
   ) {}
+
+  // ============================================
+  // DEBUG/TEST ROUTES (Remove in production)
+  // ============================================
+
+  @Get('test/session')
+  @ApiOperation({ summary: 'Test session storage - DEBUG ONLY' })
+  async testSession(
+    @CurrentUser() user: CurrentUserType,
+    @Req() req: SessionRequest,
+  ) {
+    if (!req.session) {
+      req.session = {} as any;
+    }
+    req.session.userId = user.id;
+
+    this.logger.log(`Session test - Set userId: ${user.id}`);
+    this.logger.log(`Session ID: ${req.sessionID}`);
+    this.logger.log(`Session data:`, req.session);
+
+    return {
+      message: 'Session set successfully',
+      sessionId: req.sessionID,
+      userId: req.session.userId,
+      userFromJWT: user.id,
+    };
+  }
+
+  @Get('test/session/read')
+  @ApiOperation({ summary: 'Read session storage - DEBUG ONLY (No auth)' })
+  async testSessionRead(@Req() req: SessionRequest) {
+    this.logger.log(`Session read - Session ID: ${req.sessionID}`);
+    this.logger.log(`Session data:`, req.session);
+
+    return {
+      message: 'Session read',
+      sessionId: req.sessionID,
+      userId: req.session?.userId,
+      hasSession: !!req.session,
+      fullSession: req.session,
+    };
+  }
+
+  // ============================================
+  // PROFILE & SETTINGS
+  // ============================================
 
   @Get('profile')
   @ApiOperation({ summary: 'Get user profile' })
@@ -86,7 +133,8 @@ export class UserController {
         xId: true,
       },
     });
-     if (!profile) {
+    
+    if (!profile) {
       throw new NotFoundException('User not found.');
     }
 
@@ -134,7 +182,6 @@ export class UserController {
       },
     });
 
-    // Verify credentials
     const isValid = await this.x.verifyCredentials(user.id);
 
     this.logger.log(`X credentials updated for user ${user.id}, valid: ${isValid}`);
@@ -168,90 +215,120 @@ export class UserController {
     const isValid = await this.x.verifyCredentials(user.id);
     return { valid: isValid };
   }
-  // For GitHub linking
-@Get('link/github')
-@UseGuards(JwtAuthGuard)
-@ApiOperation({ summary: 'Link GitHub account - Frontend calls this' })
-@ApiResponse({ status: 302, description: 'Redirects to GitHub OAuth' })
-async linkGitHub(
-  @CurrentUser() user: CurrentUserType,
-  @Req() req: SessionRequest,
-  @Res() res: Response,
-) {
-  // Ensure session exists and store user ID
-  req.session.userId = user.id;
-  
-  this.logger.log(`Initiating GitHub link for user ${user.id}`);
-  
-  res.redirect('/user/link/github/auth');
-}
 
-@Get('link/github/auth')
-@UseGuards(GitHubOAuthGuard)
-@ApiOperation({ summary: 'GitHub OAuth trigger - Internal use only' })
-async linkGitHubAuth() {
-  // Guard automatically redirects to GitHub
-}
-@Get('link/github/callback')
-@UseGuards(GitHubOAuthGuard)
-@ApiOperation({ summary: 'GitHub OAuth callback - GitHub calls this' })
-async linkGitHubCallback(@Req() req: SessionRequest, @Res() res: Response) {
-  const user = req.user as CurrentUserType;
-  
-  // Clear session userId
-  delete req.session.userId;
-  
-  this.logger.log(`GitHub linked successfully for user ${user.id}`);
-  
-  const frontendUrl = this.config.get<string>('FRONTEND_URL');
-  res.redirect(`${frontendUrl}/settings?linked=github&success=true`);
-}
+  // ============================================
+  // GITHUB LINKING
+  // ============================================
 
-// For Twitter linking
-@Get('link/twitter')
-@UseGuards(JwtAuthGuard)
-@ApiOperation({ summary: 'Link Twitter account - Frontend calls this' })
-@ApiResponse({ status: 302, description: 'Redirects to Twitter OAuth' })
-async linkTwitter(
-  @CurrentUser() user: CurrentUserType,
-  @Req() req: SessionRequest,
-  @Res() res: Response,
-) {
-  // Ensure session exists and store user ID
-  req.session.userId = user.id;
-  
-  this.logger.log(`Initiating Twitter link for user ${user.id}`);
-  
-  res.redirect('/user/link/twitter/auth');
-}
+  @Get('link/github')
+  @ApiOperation({ summary: 'Link GitHub account - Frontend calls this' })
+  @ApiResponse({ status: 302, description: 'Redirects to GitHub OAuth' })
+  async linkGitHub(
+    @CurrentUser() user: CurrentUserType,
+    @Req() req: SessionRequest,
+    @Res() res: Response,
+  ) {
+    if (!req.session) {
+      req.session = {} as any;
+    }
+    req.session.userId = user.id;
 
-@Get('link/twitter/auth')
-@UseGuards(XOAuthGuard)
-@ApiOperation({ summary: 'Twitter OAuth trigger - Internal use only' })
-async linkTwitterAuth() {
-  // Guard automatically redirects to Twitter
-}
+    this.logger.log('=== GitHub Link Initiated ===');
+    this.logger.log(`User ID from JWT: ${user.id}`);
+    this.logger.log(`Session ID: ${req.sessionID}`);
+    this.logger.log(`Session userId set to: ${req.session.userId}`);
+    this.logger.log(`Session object:`, req.session);
 
-@Get('link/twitter/callback')
-@UseGuards(XOAuthGuard)
-@ApiOperation({ summary: 'Twitter OAuth callback - Twitter calls this' })
-async linkTwitterCallback(@Req() req: SessionRequest, @Res() res: Response) {
-  const user = req.user as CurrentUserType;
-  
-  // Clear session userId
-  delete req.session.userId;
-  
-  this.logger.log(`Twitter linked successfully for user ${user.id}`);
-  
-  const frontendUrl = this.config.get<string>('FRONTEND_URL');
-  res.redirect(`${frontendUrl}/settings?linked=twitter&success=true`);
-}
+    res.redirect('/user/link/github/auth');
+  }
+
+  @Get('link/github/auth')
+  @UseGuards(GitHubOAuthGuard)
+  @ApiOperation({ summary: 'GitHub OAuth trigger - Internal use only' })
+  async linkGitHubAuth() {
+    // Guard automatically redirects to GitHub
+  }
+
+  @Get('link/github/callback')
+  @UseGuards(GitHubOAuthGuard)
+  @ApiOperation({ summary: 'GitHub OAuth callback - GitHub calls this' })
+  async linkGitHubCallback(@Req() req: SessionRequest, @Res() res: Response) {
+    const user = req.user as CurrentUserType;
+
+    this.logger.log('=== GitHub Callback ===');
+    this.logger.log(`User ID: ${user.id}`);
+    this.logger.log(`Session ID: ${req.sessionID}`);
+
+    if (req.session?.userId) {
+      this.logger.log(`Clearing session userId: ${req.session.userId}`);
+      delete req.session.userId;
+    }
+
+    const frontendUrl = this.config.get<string>('FRONTEND_URL');
+    res.redirect(`${frontendUrl}/settings?linked=github&success=true`);
+  }
+
+  // ============================================
+  // TWITTER LINKING
+  // ============================================
+
+  @Get('link/twitter')
+  @ApiOperation({ summary: 'Link Twitter account - Frontend calls this' })
+  @ApiResponse({ status: 302, description: 'Redirects to Twitter OAuth' })
+  async linkTwitter(
+    @CurrentUser() user: CurrentUserType,
+    @Req() req: SessionRequest,
+    @Res() res: Response,
+  ) {
+    if (!req.session) {
+      req.session = {} as any;
+    }
+    req.session.userId = user.id;
+
+    this.logger.log('=== Twitter Link Initiated ===');
+    this.logger.log(`User ID from JWT: ${user.id}`);
+    this.logger.log(`Session ID: ${req.sessionID}`);
+    this.logger.log(`Session userId set to: ${req.session.userId}`);
+    this.logger.log(`Session object:`, req.session);
+
+    res.redirect('/user/link/twitter/auth');
+  }
+
+  @Get('link/twitter/auth')
+  @UseGuards(XOAuthGuard)
+  @ApiOperation({ summary: 'Twitter OAuth trigger - Internal use only' })
+  async linkTwitterAuth() {
+    // Guard automatically redirects to Twitter
+  }
+
+  @Get('link/twitter/callback')
+  @UseGuards(XOAuthGuard)
+  @ApiOperation({ summary: 'Twitter OAuth callback - Twitter calls this' })
+  async linkTwitterCallback(@Req() req: SessionRequest, @Res() res: Response) {
+    const user = req.user as CurrentUserType;
+
+    this.logger.log('=== Twitter Callback ===');
+    this.logger.log(`User ID: ${user.id}`);
+    this.logger.log(`Session ID: ${req.sessionID}`);
+
+    if (req.session?.userId) {
+      this.logger.log(`Clearing session userId: ${req.session.userId}`);
+      delete req.session.userId;
+    }
+
+    const frontendUrl = this.config.get<string>('FRONTEND_URL');
+    res.redirect(`${frontendUrl}/settings?linked=twitter&success=true`);
+  }
+
+  // ============================================
+  // UNLINK ACCOUNTS
+  // ============================================
 
   @Delete('link/github')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Unlink GitHub account' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'GitHub account unlinked',
     type: LinkAccountResponseDto,
   })
@@ -278,8 +355,8 @@ async linkTwitterCallback(@Req() req: SessionRequest, @Res() res: Response) {
   @Delete('link/twitter')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Unlink Twitter account' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Twitter account unlinked',
     type: LinkAccountResponseDto,
   })
@@ -302,6 +379,10 @@ async linkTwitterCallback(@Req() req: SessionRequest, @Res() res: Response) {
       provider: 'twitter',
     };
   }
+
+  // ============================================
+  // CONNECTIONS & REPOSITORIES
+  // ============================================
 
   @Get('connections')
   @ApiOperation({ summary: 'Get linked account status' })
@@ -326,7 +407,7 @@ async linkTwitterCallback(@Req() req: SessionRequest, @Res() res: Response) {
       },
     });
 
-     if (!userData) {
+    if (!userData) {
       throw new NotFoundException('User not found.');
     }
 
@@ -341,8 +422,9 @@ async linkTwitterCallback(@Req() req: SessionRequest, @Res() res: Response) {
       },
     };
   }
-   @Get('github/repositories')
-  @ApiOperation({ 
+
+  @Get('github/repositories')
+  @ApiOperation({
     summary: 'Get user GitHub repositories',
     description: 'Fetch all repositories from linked GitHub account',
   })
@@ -358,13 +440,13 @@ async linkTwitterCallback(@Req() req: SessionRequest, @Res() res: Response) {
   })
   async getGitHubRepositories(@CurrentUser() user: CurrentUserType) {
     const repositories = await this.github.getUserRepositories(user.id);
-    
+
     const userData = await this.prisma.user.findUnique({
       where: { id: user.id },
       select: { githubRepos: true },
     });
 
-     if (!userData) {
+    if (!userData) {
       throw new NotFoundException('User not found.');
     }
 
@@ -376,7 +458,7 @@ async linkTwitterCallback(@Req() req: SessionRequest, @Res() res: Response) {
 
   @Put('github/repositories')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Select repositories to monitor',
     description: 'Choose which repositories should trigger posts',
   })

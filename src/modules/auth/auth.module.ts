@@ -25,6 +25,7 @@ import { DatabaseModule } from 'src/database/database.module';
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, GitHubStrategy, XStrategy],
-  exports: [AuthService],
+  exports: [AuthService, JwtModule
+  ],
 })
 export class AuthModule {}

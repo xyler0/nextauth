@@ -12,9 +12,10 @@ type GitHubValidatedUser = {
 };
 
 type GitHubRequest = Request & {
-  session: {
+  session?: {
     userId?: string;
   };
+  sessionID?: string;
 };
 
 @Injectable()
@@ -40,18 +41,27 @@ export class GitHubStrategy extends PassportStrategy(Strategy, 'github') {
     _refreshToken: string,
     profile: Profile,
   ): Promise<GitHubValidatedUser> {
-    this.logger.log(`GitHub OAuth callback for user: ${profile.username}`);
+    this.logger.log('=== GitHub Strategy Validate ===');
+    this.logger.log(`Profile username: ${profile.username}`);
+    this.logger.log(`Profile ID: ${profile.id}`);
+    this.logger.log(`Session ID: ${req.sessionID}`);
+    this.logger.log(`Session userId: ${req.session?.userId}`);
+    this.logger.log(`Session object:`, JSON.stringify(req.session));
+    this.logger.log(`Has session: ${!!req.session}`);
 
     const email = profile.emails?.[0]?.value;
     if (!email) {
       throw new UnauthorizedException('No email provided by GitHub');
     }
 
-    const existingUserId = req.session.userId;
+    const existingUserId = req.session?.userId;
 
-    // Linking GitHub to an existing session user
+    let user;
+
     if (existingUserId) {
-      const user = await this.prisma.user.update({
+      this.logger.log(`Linking GitHub to existing user: ${existingUserId}`);
+      
+      user = await this.prisma.user.update({
         where: { id: existingUserId },
         data: {
           githubId: profile.id,
@@ -59,71 +69,55 @@ export class GitHubStrategy extends PassportStrategy(Strategy, 'github') {
           githubUsername: profile.username,
         },
       });
-      this.logger.log(`Linked GitHub to user: ${user.id}`);
-      return {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-      };
-    }
-
-    // Find by GitHub ID
-    let user = await this.prisma.user.findUnique({
-      where: { githubId: profile.id },
-    });
-
-    if (user) {
-      // Update tokens if user exists
-      user = await this.prisma.user.update({
-        where: { id: user.id },
-        data: {
-          githubAccessToken: accessToken,
-          githubUsername: profile.username,
-        },
+      
+      this.logger.log(`✅ Successfully linked GitHub to user: ${user.id}`);
+    } else {
+      this.logger.log('No session userId found - proceeding with login/signup flow');
+      
+      user = await this.prisma.user.findUnique({
+        where: { githubId: profile.id },
       });
-      this.logger.log(`Updated existing GitHub user: ${user.id}`);
-      return {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-      };
+
+      if (!user) {
+        const emailUser = await this.prisma.user.findUnique({
+          where: { email },
+        });
+
+        if (emailUser) {
+          user = await this.prisma.user.update({
+            where: { id: emailUser.id },
+            data: {
+              githubId: profile.id,
+              githubAccessToken: accessToken,
+              githubUsername: profile.username,
+            },
+          });
+          this.logger.log(`Linked GitHub to existing email account: ${user.id}`);
+        } else {
+          user = await this.prisma.user.create({
+            data: {
+              email,
+              password: '',
+              name: profile.displayName ?? profile.username,
+              githubId: profile.id,
+              githubAccessToken: accessToken,
+              githubUsername: profile.username,
+            },
+          });
+          this.logger.log(`Created new user from GitHub OAuth: ${user.id}`);
+        }
+      } else {
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            githubAccessToken: accessToken,
+            githubUsername: profile.username,
+          },
+        });
+        this.logger.log(`Updated existing GitHub user: ${user.id}`);
+      }
     }
 
-    // Find by email
-    const emailUser = await this.prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (emailUser) {
-      user = await this.prisma.user.update({
-        where: { id: emailUser.id },
-        data: {
-          githubId: profile.id,
-          githubAccessToken: accessToken,
-          githubUsername: profile.username,
-        },
-      });
-      this.logger.log(`Linked GitHub to existing email account: ${user.id}`);
-      return {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-      };
-    }
-
-    // Create new user
-    user = await this.prisma.user.create({
-      data: {
-        email,
-        password: '', // OAuth users don't need password
-        name: profile.displayName ?? profile.username,
-        githubId: profile.id,
-        githubAccessToken: accessToken,
-        githubUsername: profile.username,
-      },
-    });
-
-    this.logger.log(`Created new user from GitHub OAuth: ${user.id}`);
     return {
       id: user.id,
       email: user.email,

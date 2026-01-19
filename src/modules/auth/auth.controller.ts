@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Get, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, Get, Req, Res, UseGuards, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signup.dto';
@@ -13,11 +13,20 @@ import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { OAuthUser } from 'src/common/types/oauth-user.type';
 import { JwtUser } from 'src/common/types/jwt-user.type';
 import { Logger } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 
 
 interface OAuthRequest extends Request {
   user: OAuthUser;
 }
+
+type SessionRequest = Request & {
+  session: {
+    userId?: string;
+  };
+  sessionID?: string;
+};
+
 
 @ApiTags('auth')
 @Controller('auth')
@@ -26,6 +35,7 @@ export class AuthController {
   constructor(
     private readonly auth: AuthService,
     private readonly configService: ConfigService,
+    private readonly jwtService: JwtService, 
   ) {}
 
   @Post('signup')
@@ -87,6 +97,115 @@ export class AuthController {
      const frontendUrl = this.configService.get<string>('FRONTEND_URL'); 
      res.redirect(`${frontendUrl}/auth/callback?token=${token}&provider=twitter`);
    }
+
+   @Get('link/github')
+@ApiOperation({ summary: 'Link GitHub to existing account (token in query)' })
+@ApiResponse({ status: 302, description: 'Redirects to GitHub OAuth' })
+async linkGitHub(
+  @Query('token') token: string,
+  @Req() req: SessionRequest,
+  @Res() res: Response,
+) {
+  const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+
+  this.logger.log('=== GitHub Link Request ===');
+  this.logger.log(`Token received: ${token ? 'Yes' : 'No'}`);
+  this.logger.log(`Token length: ${token?.length}`);
+
+  if (!token) {
+    this.logger.warn('GitHub link attempted without token');
+    return res.redirect(`${frontendUrl}/settings?error=missing_token`);
+  }
+
+  try {
+    this.logger.log('Attempting to verify token...');
+    const payload = this.jwtService.verify(token);
+    this.logger.log('Token verified successfully');
+    this.logger.log(`Payload:`, payload);
+    
+    const userId = payload.sub;
+
+    if (!req.session) {
+      req.session = {} as any;
+    }
+    req.session.userId = userId;
+
+    this.logger.log('=== GitHub Link Initiated ===');
+    this.logger.log(`User ID from token: ${userId}`);
+    this.logger.log(`Session ID: ${req.sessionID}`);
+    this.logger.log(`Session userId set to: ${req.session!.userId}`);
+    this.logger.log(`Session object:`, req.session);
+
+    res.redirect('/auth/github');
+  } catch (error: any) {
+    this.logger.error('=== Token Verification Failed ===');
+    this.logger.error(`Error name: ${error.name}`);
+    this.logger.error(`Error message: ${error.message}`);
+    this.logger.error(`Full error:`, error);
+    res.redirect(`${frontendUrl}/settings?error=invalid_token`);
+  }
+}
+
+@Get('link/twitter')
+@ApiOperation({ summary: 'Link Twitter - accepts token in query' })
+@ApiResponse({ status: 302, description: 'Redirects to Twitter OAuth' })
+async linkTwitter(
+  @Query('token') token: string,
+  @Req() req: SessionRequest,
+  @Res() res: Response,
+) {
+  const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+
+  if (!token) {
+    this.logger.warn('Twitter link attempted without token');
+    return res.redirect(`${frontendUrl}/settings?error=missing_token`);
+  }
+
+  try {
+    // Verify JWT token from query parameter
+    const payload = this.jwtService.verify(token);
+    const userId = payload.sub;
+
+    // Store user ID in session for linking
+    if (!req.session) {
+      req.session = {} as any;
+    }
+    req.session.userId = userId;
+
+    this.logger.log('=== Twitter Link Initiated ===');
+    this.logger.log(`User ID from token: ${userId}`);
+    this.logger.log(`Session ID: ${req.sessionID}`);
+    this.logger.log(`Session userId set to: ${req.session.userId}`);
+    this.logger.log(`Session object:`, req.session);
+
+    // Redirect to the Twitter OAuth flow
+    res.redirect('/auth/twitter');
+  } catch (error) {
+    this.logger.error('Invalid token for Twitter linking:', error.message);
+    res.redirect(`${frontendUrl}/settings?error=invalid_token`);
+  }
+}
+@Get('test/jwt')
+@ApiOperation({ summary: 'Test JWT signing and verification' })
+async testJwt() {
+  try {
+    const testToken = this.jwtService.sign({ sub: 'test123', email: 'test@test.com' });
+    const verified = this.jwtService.verify(testToken);
+    
+    return {
+      success: true,
+      token: testToken,
+      verified,
+      secret: this.configService.get('JWT_SECRET')?.substring(0, 10) + '...', // Only show first 10 chars
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+}
+
    @Post('logout')
    @HttpCode(HttpStatus.OK)
    @ApiOperation({ 
