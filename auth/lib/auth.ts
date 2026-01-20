@@ -62,31 +62,54 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    async jwt({ token, user, account }) {
-      // Initial sign in
-      if (user) {
-        token.id = user.id;
-        token.email = user.email;
-        token.name = user.name;
-      }
+  async jwt({ token, user, account, trigger }) {
+    // Initial sign in
+    if (user) {
+      token.id = user.id;
+      token.email = user.email;
+      token.name = user.name;
+    }
+    
+    // Store provider info
+    if (account) {
+      token.provider = account.provider;
+      token.providerId = account.providerAccountId;
+    }
+
+    // Handle token updates
+    if (trigger === "update") {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: token.id as string },
+      });
       
-      // Store provider info
-      if (account) {
-        token.provider = account.provider;
+      if (dbUser) {
+        token.email = dbUser.email;
+        token.name = dbUser.name;
       }
+    }
 
-      return token;
-    },
-
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
-        session.user.email = token.email as string;
-        session.user.name = token.name as string;
-      }
-      return session;
-    },
+    return token;
   },
+
+  async session({ session, token }) {
+    if (session.user) {
+      session.user.id = token.id as string;
+      session.user.email = token.email as string;
+      session.user.name = token.name as string;
+    }
+    return session;
+  },
+
+  async redirect({ url, baseUrl }) {
+    // Redirect to frontend after auth
+    if (url.startsWith(baseUrl)) return url;
+    if (url.startsWith("/")) return `${baseUrl}${url}`;
+    
+    // Redirect to frontend
+    const frontendUrl = process.env.FRONTEND_URL || baseUrl;
+    return frontendUrl;
+  },
+},
 
   debug: process.env.NODE_ENV === 'development',
 
