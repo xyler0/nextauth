@@ -27,15 +27,24 @@ export const authOptions: NextAuthOptions = {
 }),
     
     TwitterProvider({
-      clientId: process.env.TWITTER_CLIENT_ID!,
-      clientSecret: process.env.TWITTER_CLIENT_SECRET!,
-      version: "2.0",
-      authorization: {
-        params: {
-          scope: 'tweet.read tweet.write users.read offline.access',
-        },
-      },
-    }),
+  clientId: process.env.TWITTER_CLIENT_ID!,
+  clientSecret: process.env.TWITTER_CLIENT_SECRET!,
+  version: "2.0",
+  authorization: {
+    params: {
+      scope: 'tweet.read tweet.write users.read offline.access',
+    },
+  },
+  profile(profile) {
+    return {
+      id: profile.data.id,
+      name: profile.data.name,
+      email: profile.data.email || `${profile.data.username}@twitter.placeholder`,
+      image: profile.data.profile_image_url,
+    };
+  },
+}),
+
   ],
 
   session: {
