@@ -3,13 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../database/prisma.service';
 import { TwitterApi } from 'twitter-api-v2';
 
-interface XCredentials {
-  xApiKey?: string | null;
-  xApiSecret?: string | null;
-  xAccessToken?: string | null;
-  xAccessSecret?: string | null;
-}
-
 @Injectable()
 export class XService {
   private readonly logger = new Logger(XService.name);
@@ -29,27 +22,10 @@ export class XService {
       this.logger.warn(text);
       return { text };
     }
-
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        xAccessToken: true,
-        xAccessSecret: true,
-        xApiKey: true,
-        xApiSecret: true,
-      },
-    });
-
-    if (user?.xAccessToken && user?.xAccessSecret) {
-      return this.postWithOAuth(text, user.xAccessToken, user.xAccessSecret);
-    }
-
-    if (user?.xApiKey && user?.xApiSecret) {
-      this.logger.warn('Using manual X credentials. Please link via OAuth.');
-      return this.postWithManualCredentials(text, user);
-    }
-
-    throw new BadRequestException('X account not linked. Please connect via OAuth.');
+    throw new BadRequestException(
+      'X posting requires Auth.js integration. ' +
+      'Please implement provider token access from Auth.js accounts table.'
+    );
   }
 
   private async postWithOAuth(
@@ -78,58 +54,13 @@ export class XService {
     }
   }
 
-  private async postWithManualCredentials(
-    text: string,
-    user: XCredentials,
-  ): Promise<{ id: string; text: string }> {
-    if (!user.xApiKey || !user.xApiSecret || !user.xAccessToken || !user.xAccessSecret) {
-      throw new BadRequestException('Manual X credentials are incomplete.');
-    }
-
-    try {
-      const client = new TwitterApi({
-        appKey: user.xApiKey,
-        appSecret: user.xApiSecret,
-        accessToken: user.xAccessToken,
-        accessSecret: user.xAccessSecret,
-      });
-
-      const tweet = await client.v2.tweet(text);
-      this.logger.log(`Posted to X: ${tweet.data.id}`);
-
-      return { id: tweet.data.id, text: tweet.data.text };
-    } catch (error) {
-      this.logger.error('Failed to post to X', error);
-      throw error;
-    }
-  }
-
   async verifyCredentials(userId: string): Promise<boolean> {
     if (this.dryRun) return true;
 
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { xAccessToken: true, xAccessSecret: true },
-    });
-
-    if (!user?.xAccessToken || !user?.xAccessSecret) return false;
-
-    try {
-      const consumerKey = this.config.get<string>('TWITTER_CLIENT_ID')!;
-      const consumerSecret = this.config.get<string>('TWITTER_CLIENT_SECRET')!;
-
-      const client = new TwitterApi({
-        appKey: consumerKey,
-        appSecret: consumerSecret,
-        accessToken: user.xAccessToken,
-        accessSecret: user.xAccessSecret,
-      });
-
-      await client.v2.me();
-      return true;
-    } catch (error) {
-      this.logger.error('X credentials verification failed', error);
-      return false;
-    }
+    this.logger.warn(
+      'verifyCredentials: X tokens now managed by Auth.js. ' +
+      'This method returns false. Implement Auth.js provider token access.'
+    );
+    return false;
   }
 }

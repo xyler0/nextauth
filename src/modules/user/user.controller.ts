@@ -6,10 +6,6 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
-  Delete,
-  Req,
-  Res,
-  UseGuards,
   NotFoundException,
 } from '@nestjs/common';
 import {
@@ -21,39 +17,18 @@ import {
 import { PrismaService } from '../../database/prisma.service';
 import { XService } from '../x/x.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { UpdateXCredentialsDto } from './dto/update-x-credentials.dto';
-import { UpdateGitHubSettingsDto } from './dto/update-github-settings.dto';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
-import { LinkAccountResponseDto } from './dto/link-account-response.dto';
-import { AuthService } from '../auth/auth.service';
-import { ConfigService } from '@nestjs/config';
-import { GitHubOAuthGuard } from 'src/common/guards/github-oauth.guard';
-import { XOAuthGuard } from 'src/common/guards/x-oauth.guard';
-import { Response, Request } from 'express';
 import { GitHubService } from '../github/github.service';
 import { SelectReposDto } from './dto/select-repos.dto';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 
 interface CurrentUserType {
   id: string;
-  email?: string;
-  name?: string;
-  maxPostsPerDay?: number;
-  githubId?: string | null;
-  githubUsername?: string | null;
-  githubRepos?: string[] | null;
-  xId?: string | null;
-  xUsername?: string | null;
+  email: string;
+  name?: string | null;
+  maxPostsPerDay: number;
+  timezone: string;
 }
 
-type SessionRequest = Request & {
-  session?: {
-    userId?: string;
-  };
-  sessionID?: string;
-};
-
-@UseGuards(JwtAuthGuard)
 @ApiTags('user')
 @Controller('user')
 @ApiBearerAuth('JWT')
@@ -63,56 +38,8 @@ export class UserController {
   constructor(
     private readonly prisma: PrismaService,
     private readonly x: XService,
-    private readonly auth: AuthService,
-    private readonly config: ConfigService,
     private readonly github: GitHubService,
   ) {}
-
-  // ============================================
-  // DEBUG/TEST ROUTES (Remove in production)
-  // ============================================
-
-  @Get('test/session')
-  @ApiOperation({ summary: 'Test session storage - DEBUG ONLY' })
-  async testSession(
-    @CurrentUser() user: CurrentUserType,
-    @Req() req: SessionRequest,
-  ) {
-    if (!req.session) {
-      req.session = {} as any;
-    }
-    req.session.userId = user.id;
-
-    this.logger.log(`Session test - Set userId: ${user.id}`);
-    this.logger.log(`Session ID: ${req.sessionID}`);
-    this.logger.log(`Session data:`, req.session);
-
-    return {
-      message: 'Session set successfully',
-      sessionId: req.sessionID,
-      userId: req.session.userId,
-      userFromJWT: user.id,
-    };
-  }
-
-  @Get('test/session/read')
-  @ApiOperation({ summary: 'Read session storage - DEBUG ONLY (No auth)' })
-  async testSessionRead(@Req() req: SessionRequest) {
-    this.logger.log(`Session read - Session ID: ${req.sessionID}`);
-    this.logger.log(`Session data:`, req.session);
-
-    return {
-      message: 'Session read',
-      sessionId: req.sessionID,
-      userId: req.session?.userId,
-      hasSession: !!req.session,
-      fullSession: req.session,
-    };
-  }
-
-  // ============================================
-  // PROFILE & SETTINGS
-  // ============================================
 
   @Get('profile')
   @ApiOperation({ summary: 'Get user profile' })
@@ -126,11 +53,9 @@ export class UserController {
         name: true,
         maxPostsPerDay: true,
         timezone: true,
-        githubUsername: true,
         githubRepos: true,
         createdAt: true,
-        githubId: true,
-        xId: true,
+        authUserId: true,
       },
     });
     
@@ -138,13 +63,7 @@ export class UserController {
       throw new NotFoundException('User not found.');
     }
 
-    return {
-      ...profile,
-      linkedAccounts: {
-        github: !!profile.githubId,
-        twitter: !!profile.xId,
-      },
-    };
+    return profile;
   }
 
   @Put('settings')
@@ -162,265 +81,6 @@ export class UserController {
 
     this.logger.log(`Settings updated for user ${user.id}`);
     return { message: 'Settings updated successfully' };
-  }
-
-  @Put('x-credentials')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Update X/Twitter credentials' })
-  @ApiResponse({ status: 200, description: 'Credentials updated' })
-  async updateXCredentials(
-    @Body() dto: UpdateXCredentialsDto,
-    @CurrentUser() user: CurrentUserType,
-  ) {
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        xApiKey: dto.xApiKey,
-        xApiSecret: dto.xApiSecret,
-        xAccessToken: dto.xAccessToken,
-        xAccessSecret: dto.xAccessSecret,
-      },
-    });
-
-    const isValid = await this.x.verifyCredentials(user.id);
-
-    this.logger.log(`X credentials updated for user ${user.id}, valid: ${isValid}`);
-    return {
-      message: 'X credentials updated',
-      verified: isValid,
-    };
-  }
-
-  @Put('github-settings')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Update GitHub monitoring settings' })
-  @ApiResponse({ status: 200, description: 'GitHub settings updated' })
-  async updateGitHubSettings(
-    @Body() dto: UpdateGitHubSettingsDto,
-    @CurrentUser() user: CurrentUserType,
-  ) {
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: dto,
-    });
-
-    this.logger.log(`GitHub settings updated for user ${user.id}`);
-    return { message: 'GitHub settings updated successfully' };
-  }
-
-  @Get('x-credentials/verify')
-  @ApiOperation({ summary: 'Verify X credentials' })
-  @ApiResponse({ status: 200, description: 'Verification result' })
-  async verifyXCredentials(@CurrentUser() user: CurrentUserType) {
-    const isValid = await this.x.verifyCredentials(user.id);
-    return { valid: isValid };
-  }
-
-  // ============================================
-  // GITHUB LINKING
-  // ============================================
-
-  @Get('link/github')
-  @ApiOperation({ summary: 'Link GitHub account - Frontend calls this' })
-  @ApiResponse({ status: 302, description: 'Redirects to GitHub OAuth' })
-  async linkGitHub(
-    @CurrentUser() user: CurrentUserType,
-    @Req() req: SessionRequest,
-    @Res() res: Response,
-  ) {
-    if (!req.session) {
-      req.session = {} as any;
-    }
-    req.session.userId = user.id;
-
-    this.logger.log('=== GitHub Link Initiated ===');
-    this.logger.log(`User ID from JWT: ${user.id}`);
-    this.logger.log(`Session ID: ${req.sessionID}`);
-    this.logger.log(`Session userId set to: ${req.session.userId}`);
-    this.logger.log(`Session object:`, req.session);
-
-    res.redirect('/user/link/github/auth');
-  }
-
-  @Get('link/github/auth')
-  @UseGuards(GitHubOAuthGuard)
-  @ApiOperation({ summary: 'GitHub OAuth trigger - Internal use only' })
-  async linkGitHubAuth() {
-    // Guard automatically redirects to GitHub
-  }
-
-  @Get('link/github/callback')
-  @UseGuards(GitHubOAuthGuard)
-  @ApiOperation({ summary: 'GitHub OAuth callback - GitHub calls this' })
-  async linkGitHubCallback(@Req() req: SessionRequest, @Res() res: Response) {
-    const user = req.user as CurrentUserType;
-
-    this.logger.log('=== GitHub Callback ===');
-    this.logger.log(`User ID: ${user.id}`);
-    this.logger.log(`Session ID: ${req.sessionID}`);
-
-    if (req.session?.userId) {
-      this.logger.log(`Clearing session userId: ${req.session.userId}`);
-      delete req.session.userId;
-    }
-
-    const frontendUrl = this.config.get<string>('FRONTEND_URL');
-    res.redirect(`${frontendUrl}/settings?linked=github&success=true`);
-  }
-
-  // ============================================
-  // TWITTER LINKING
-  // ============================================
-
-  @Get('link/twitter')
-  @ApiOperation({ summary: 'Link Twitter account - Frontend calls this' })
-  @ApiResponse({ status: 302, description: 'Redirects to Twitter OAuth' })
-  async linkTwitter(
-    @CurrentUser() user: CurrentUserType,
-    @Req() req: SessionRequest,
-    @Res() res: Response,
-  ) {
-    if (!req.session) {
-      req.session = {} as any;
-    }
-    req.session.userId = user.id;
-
-    this.logger.log('=== Twitter Link Initiated ===');
-    this.logger.log(`User ID from JWT: ${user.id}`);
-    this.logger.log(`Session ID: ${req.sessionID}`);
-    this.logger.log(`Session userId set to: ${req.session.userId}`);
-    this.logger.log(`Session object:`, req.session);
-
-    res.redirect('/user/link/twitter/auth');
-  }
-
-  @Get('link/twitter/auth')
-  @UseGuards(XOAuthGuard)
-  @ApiOperation({ summary: 'Twitter OAuth trigger - Internal use only' })
-  async linkTwitterAuth() {
-    // Guard automatically redirects to Twitter
-  }
-
-  @Get('link/twitter/callback')
-  @UseGuards(XOAuthGuard)
-  @ApiOperation({ summary: 'Twitter OAuth callback - Twitter calls this' })
-  async linkTwitterCallback(@Req() req: SessionRequest, @Res() res: Response) {
-    const user = req.user as CurrentUserType;
-
-    this.logger.log('=== Twitter Callback ===');
-    this.logger.log(`User ID: ${user.id}`);
-    this.logger.log(`Session ID: ${req.sessionID}`);
-
-    if (req.session?.userId) {
-      this.logger.log(`Clearing session userId: ${req.session.userId}`);
-      delete req.session.userId;
-    }
-
-    const frontendUrl = this.config.get<string>('FRONTEND_URL');
-    res.redirect(`${frontendUrl}/settings?linked=twitter&success=true`);
-  }
-
-  // ============================================
-  // UNLINK ACCOUNTS
-  // ============================================
-
-  @Delete('link/github')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Unlink GitHub account' })
-  @ApiResponse({
-    status: 200,
-    description: 'GitHub account unlinked',
-    type: LinkAccountResponseDto,
-  })
-  async unlinkGitHub(@CurrentUser() user: CurrentUserType): Promise<LinkAccountResponseDto> {
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        githubId: null,
-        githubAccessToken: null,
-        githubUsername: null,
-        githubRepos: [],
-      },
-    });
-
-    this.logger.log(`GitHub account unlinked for user ${user.id}`);
-
-    return {
-      message: 'GitHub account unlinked successfully',
-      linked: false,
-      provider: 'github',
-    };
-  }
-
-  @Delete('link/twitter')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Unlink Twitter account' })
-  @ApiResponse({
-    status: 200,
-    description: 'Twitter account unlinked',
-    type: LinkAccountResponseDto,
-  })
-  async unlinkTwitter(@CurrentUser() user: CurrentUserType): Promise<LinkAccountResponseDto> {
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        xId: null,
-        xUsername: null,
-        xAccessToken: null,
-        xAccessSecret: null,
-      },
-    });
-
-    this.logger.log(`Twitter account unlinked for user ${user.id}`);
-
-    return {
-      message: 'Twitter account unlinked successfully',
-      linked: false,
-      provider: 'twitter',
-    };
-  }
-
-  // ============================================
-  // CONNECTIONS & REPOSITORIES
-  // ============================================
-
-  @Get('connections')
-  @ApiOperation({ summary: 'Get linked account status' })
-  @ApiResponse({
-    status: 200,
-    description: 'Linked accounts',
-    schema: {
-      example: {
-        github: { linked: true, username: 'johndoe' },
-        twitter: { linked: true, username: '@johndoe' },
-      },
-    },
-  })
-  async getConnections(@CurrentUser() user: CurrentUserType) {
-    const userData = await this.prisma.user.findUnique({
-      where: { id: user.id },
-      select: {
-        githubId: true,
-        githubUsername: true,
-        xId: true,
-        xUsername: true,
-      },
-    });
-
-    if (!userData) {
-      throw new NotFoundException('User not found.');
-    }
-
-    return {
-      github: {
-        linked: !!userData.githubId,
-        username: userData.githubUsername,
-      },
-      twitter: {
-        linked: !!userData.xId,
-        username: userData.xUsername,
-      },
-    };
   }
 
   @Get('github/repositories')
@@ -487,6 +147,14 @@ export class UserController {
   @ApiResponse({ status: 200, description: 'Verification result' })
   async verifyGitHub(@CurrentUser() user: CurrentUserType) {
     const isValid = await this.github.verifyToken(user.id);
+    return { valid: isValid };
+  }
+
+  @Get('x-credentials/verify')
+  @ApiOperation({ summary: 'Verify X credentials' })
+  @ApiResponse({ status: 200, description: 'Verification result' })
+  async verifyXCredentials(@CurrentUser() user: CurrentUserType) {
+    const isValid = await this.x.verifyCredentials(user.id);
     return { valid: isValid };
   }
 }

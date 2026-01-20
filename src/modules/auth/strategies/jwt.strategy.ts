@@ -5,8 +5,9 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../../database/prisma.service';
 
 type JwtPayload = {
-  sub: string;
+  sub: string;        // Auth.js user ID
   email: string;
+  name?: string;
   iat?: number;
   exp?: number;
 };
@@ -22,26 +23,49 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: config.get<string>('JWT_SECRET')!,
+      secretOrKey: config.get<string>('NEXTAUTH_SECRET')!, // Same secret as Auth.js
+      issuer: config.get<string>('NEXTAUTH_URL'), // Auth.js issuer
+      audience: config.get<string>('NEXTAUTH_URL'), // Auth.js audience
     });
     
-    this.logger.log('JWT Strategy initialized');
+    this.logger.log('JWT Strategy initialized for Auth.js tokens');
   }
 
   async validate(payload: JwtPayload) {
-    this.logger.debug(`Validating JWT for user: ${payload.sub}`);
+    this.logger.debug(`Validating Auth.js JWT for user: ${payload.sub}`);
     
-    // Fetch the complete user object from database
-    const user = await this.prisma.user.findUnique({
-      where: { id: payload.sub },
+    // Find or create internal user based on authUserId
+    let user = await this.prisma.user.findUnique({
+      where: { authUserId: payload.sub },
       select: {
         id: true,
         email: true,
         name: true,
         maxPostsPerDay: true,
         timezone: true,
+        authUserId: true,
       },
     });
+
+    // If user doesn't exist in our system, create them
+    if (!user) {
+      this.logger.log(`Creating internal user for Auth.js user: ${payload.sub}`);
+      user = await this.prisma.user.create({
+        data: {
+          authUserId: payload.sub,
+          email: payload.email,
+          name: payload.name || null,
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          maxPostsPerDay: true,
+          timezone: true,
+          authUserId: true,
+        },
+      });
+    }
 
     if (!user) {
       this.logger.warn(`User not found: ${payload.sub}`);

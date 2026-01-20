@@ -3,6 +3,8 @@
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// This is your Prisma schema file
+// Updated for Auth.js integration
 
 generator client {
   provider = "prisma-client"
@@ -27,41 +29,33 @@ model PostingStats {
 
   @@index([date])
 }
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
-  password  String?   // Hashed
   name      String?
   
-  // GitHub OAuth
-  githubId          String?   @unique
-  githubAccessToken String?
-  githubUsername    String?
-  githubRepos       String[]
+  // Auth.js integration - link to auth user
+  authUserId String?  @unique  // Maps to Auth.js user.id
   
-  // X/Twitter OAuth 
-  xId            String?   @unique
-  xUsername      String?
-  xAccessToken   String?
-  xAccessSecret  String?
-  
-  // Deprecated manual credentials
-  xApiKey        String?
-  xApiSecret     String?
+  // Business logic - GitHub monitoring
+  githubRepos       String[]  // Repositories to monitor (business logic only)
   
   // Settings
   maxPostsPerDay Int      @default(3)
   timezone       String   @default("UTC")
   
-  posts          Post[]
-  journalEntries JournalEntry[]
+  // Relations
+  posts            Post[]
+  journalEntries   JournalEntry[]
   trainingFeedback TrainingFeedback[]
-  writingPattern WritingPattern?
+  writingPattern   WritingPattern?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
   @@index([email])
+  @@index([authUserId])
 }
 
 model WritingPattern {
@@ -76,15 +70,15 @@ model WritingPattern {
   minSentenceLength    Int      @default(0)
   
   // Vocabulary
-  commonWords          Json     // { word: frequency }
-  avoidWords           Json     // Words user never uses
-  technicalTerms       Json     // Technical vocabulary
+  commonWords          Json
+  avoidWords           Json
+  technicalTerms       Json
   
   // Style indicators
   usesEmojis           Boolean  @default(false)
   usesHashtags         Boolean  @default(false)
   usesAbbreviations    Boolean  @default(false)
-  formalityScore       Float    @default(5.0) // 1-10
+  formalityScore       Float    @default(5.0)
   
   // Punctuation patterns
   commaFrequency       Float    @default(0)
@@ -93,10 +87,10 @@ model WritingPattern {
   ellipsisFrequency    Float    @default(0)
   
   // Sentence starters
-  commonStarters       Json     // ["Shipped", "Built", "Fixed"]
+  commonStarters       Json
   
-  // Examples (for reference)
-  examplePosts         Json     // Array of good examples
+  // Examples
+  examplePosts         Json
   
   // Learning metadata
   totalPostsAnalyzed   Int      @default(0)
@@ -113,10 +107,10 @@ model TrainingFeedback {
   
   originalText    String   @db.Text
   generatedText   String   @db.Text
-  editedText      String?  @db.Text  // What user changed it to
+  editedText      String?  @db.Text
   
-  rating          Int      // 1-5 stars
-  feedback        String?  @db.Text  // Optional comment
+  rating          Int
+  feedback        String?  @db.Text
   
   accepted        Boolean  @default(false)
   
@@ -125,7 +119,6 @@ model TrainingFeedback {
   @@index([userId, createdAt])
 }
 
-// Post model to link to user
 model Post {
   id        String   @id @default(cuid())
   content   String
@@ -147,7 +140,6 @@ model Post {
   @@index([userId, createdAt])
 }
 
-// Updated JournalEntry to link to user
 model JournalEntry {
   id        String   @id @default(cuid())
   content   String   @db.Text

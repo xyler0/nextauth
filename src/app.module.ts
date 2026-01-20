@@ -30,14 +30,14 @@ import { PatternModule } from './modules/pattern/pattern.module';
       envFilePath: ['.env'],
       validationSchema,
       validationOptions: {
-        abortEarly: true, // Stop on first error
+        abortEarly: true,
       },
     }),
     ScheduleModule.forRoot(),
     ThrottlerModule.forRoot([
       {
-        ttl: 60000, // 1 minute
-        limit: 100, // 100 requests per minute
+        ttl: 60000,
+        limit: 100,
       },
     ]),
     DatabaseModule,

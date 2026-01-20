@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../database/prisma.service';
-import { Octokit } from '@octokit/rest';
 import { GitHubFilter } from './github.filter';
 import { GitHubEvent } from './interfaces/github-event.interface';
 import { GitHubWebhookDto } from './dto/github-webhook.dto';
@@ -33,56 +32,19 @@ export class GitHubService {
   }
 
   async getUserRepositories(userId: string): Promise<string[]> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        githubAccessToken: true,
-        githubUsername: true,
-      },
-    });
-
-    if (!user?.githubAccessToken) {
-      return [];
-    }
-
-    try {
-      const octokit = new Octokit({
-        auth: user.githubAccessToken,
-      });
-
-      const { data } = await octokit.rest.repos.listForAuthenticatedUser({
-        per_page: 100,
-        sort: 'updated',
-      });
-
-      return data.map((repo) => repo.full_name);
-    } catch (error) {
-      this.logger.error('Failed to fetch GitHub repositories', error);
-      return [];
-    }
+    this.logger.warn(
+      'getUserRepositories: GitHub tokens now managed by Auth.js. ' +
+      'This method returns empty array. Implement Auth.js provider token access.'
+    );
+    return [];
   }
 
   async verifyToken(userId: string): Promise<boolean> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { githubAccessToken: true },
-    });
-
-    if (!user?.githubAccessToken) {
+    this.logger.warn(
+      'verifyToken: GitHub tokens now managed by Auth.js. ' +
+      'This method returns false. Implement Auth.js provider token access.'
+    );
       return false;
-    }
-
-    try {
-      const octokit = new Octokit({
-        auth: user.githubAccessToken,
-      });
-
-      await octokit.rest.users.getAuthenticated();
-      return true;
-    } catch (error) {
-      this.logger.error('GitHub token verification failed', error);
-      return false;
-    }
   }
 
   private parsePayload(payload: GitHubWebhookDto): GitHubEvent {

@@ -24,19 +24,13 @@ export const validationSchema = Joi.object({
   // Security
   ALLOWED_ORIGINS: Joi.string().default('http://localhost:3000'),
   
-  // JWT
-  JWT_SECRET: Joi.string().required(),
-  SESSION_SECRET: Joi.string().required(),
-
-  GITHUB_CLIENT_ID: Joi.string().optional(),
-  GITHUB_CLIENT_SECRET: Joi.string().optional(),
-  GITHUB_CALLBACK_URL: Joi.string().optional(),
-  
-  // Twitter OAuth 2.0
-  TWITTER_CLIENT_ID: Joi.string().optional(),
-  TWITTER_CLIENT_SECRET: Joi.string().optional(),
-  TWITTER_CALLBACK_URL: Joi.string().optional(),
+  // Auth.js Integration
+  NEXTAUTH_SECRET: Joi.string().required(),
+  NEXTAUTH_URL: Joi.string().required(),
 
   // Frontend
   FRONTEND_URL: Joi.string().default('http://localhost:3001'),
+  
+  // X (optional - for dry run mode)
+  X_DRY_RUN: Joi.string().valid('true', 'false').default('true'),
 });
