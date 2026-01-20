@@ -1,58 +1,27 @@
-import { NextAuthOptions } from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import { prisma } from "./prisma";
-import GitHubProvider from "next-auth/providers/github";
-import TwitterProvider from "next-auth/providers/twitter";
+import GitHub from "next-auth/providers/github";
+import Twitter from "next-auth/providers/twitter";
+import type { NextAuthConfig } from "next-auth";
 
-export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
-  
+export const authConfig = {
   providers: [
-    GitHubProvider({
-  clientId: process.env.GITHUB_CLIENT_ID!,
-  clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-  authorization: {
-    params: {
-      scope: 'read:user user:email repo',
-    },
-  },
-  profile(profile) {
-    return {
-      id: profile.id.toString(),
-      name: profile.name || profile.login,
-      email: profile.email,
-      image: profile.avatar_url,
-    };
-  },
-}),
+    GitHub({
+      clientId: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          scope: 'read:user user:email repo',
+        },
+      },
+    }),
     
-    TwitterProvider({
-  clientId: process.env.TWITTER_CLIENT_ID!,
-  clientSecret: process.env.TWITTER_CLIENT_SECRET!,
-  version: "2.0",
-  authorization: {
-    params: {
-      scope: 'tweet.read tweet.write users.read offline.access',
-    },
-  },
-  profile(profile) {
-    return {
-      id: profile.data.id,
-      name: profile.data.name,
-      email: profile.data.email || `${profile.data.username}@twitter.placeholder`,
-      image: profile.data.profile_image_url,
-    };
-  },
-}),
-
+    Twitter({
+      clientId: process.env.TWITTER_CLIENT_ID!,
+      clientSecret: process.env.TWITTER_CLIENT_SECRET!,
+    }),
   ],
 
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
-
-  jwt: {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 
@@ -62,63 +31,42 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-  async jwt({ token, user, account, trigger }) {
-    // Initial sign in
-    if (user) {
-      token.id = user.id;
-      token.email = user.email;
-      token.name = user.name;
-    }
-    
-    // Store provider info
-    if (account) {
-      token.provider = account.provider;
-      token.providerId = account.providerAccountId;
-    }
-
-    // Handle token updates
-    if (trigger === "update") {
-      const dbUser = await prisma.user.findUnique({
-        where: { id: token.id as string },
-      });
-      
-      if (dbUser) {
-        token.email = dbUser.email;
-        token.name = dbUser.name;
+    async jwt({ token, user, account, trigger }) {
+      // Initial sign in
+      if (user) {
+        token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
       }
-    }
+      
+      // Store provider info
+      if (account) {
+        token.provider = account.provider;
+        token.providerId = account.providerAccountId;
+      }
 
-    return token;
-  },
+      return token;
+    },
 
-  async session({ session, token }) {
-    if (session.user) {
-      session.user.id = token.id as string;
-      session.user.email = token.email as string;
-      session.user.name = token.name as string;
-    }
-    return session;
-  },
+    async session({ session, token }) {
+      if (session.user && token.sub) {
+        session.user.id = token.sub;
+        session.user.email = token.email as string;
+        session.user.name = token.name as string;
+      }
+      return session;
+    },
 
-  async redirect({ url, baseUrl }) {
-    // Redirect to frontend after auth
-    if (url.startsWith(baseUrl)) return url;
-    if (url.startsWith("/")) return `${baseUrl}${url}`;
-    
-    // Redirect to frontend
-    const frontendUrl = process.env.FRONTEND_URL || baseUrl;
-    return frontendUrl;
+    async redirect({ url, baseUrl }) {
+      // Redirect to frontend after auth
+      if (url.startsWith(baseUrl)) return url;
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      
+      // Redirect to frontend
+      const frontendUrl = process.env.FRONTEND_URL || baseUrl;
+      return frontendUrl;
+    },
   },
-},
 
   debug: process.env.NODE_ENV === 'development',
-
-  events: {
-    async signIn({ user, account, profile }) {
-      console.log(`User signed in: ${user.email} via ${account?.provider}`);
-    },
-    async linkAccount({ user, account }) {
-      console.log(`Account linked: ${account.provider} for user ${user.email}`);
-    },
-  },
-};
+} satisfies NextAuthConfig;
