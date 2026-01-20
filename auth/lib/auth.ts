@@ -89,4 +89,13 @@ export const authOptions: NextAuthOptions = {
   },
 
   debug: process.env.NODE_ENV === 'development',
+
+  events: {
+    async signIn({ user, account, profile }) {
+      console.log(`User signed in: ${user.email} via ${account?.provider}`);
+    },
+    async linkAccount({ user, account }) {
+      console.log(`Account linked: ${account.provider} for user ${user.email}`);
+    },
+  },
 };
