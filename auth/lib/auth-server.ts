@@ -14,8 +14,5 @@ export const authServerConfig = {
     async linkAccount({ user, account }) {
       console.log(`Account linked: ${account.provider} for user ${user.email}`);
     },
-  async signOut({ token }) {
-    console.log(`User signed out: ${token.email}`);
-  },
 },
 } satisfies NextAuthConfig;
