@@ -3,8 +3,10 @@ import { redirect } from "next/navigation";
 import { getProviderAccounts } from "@/lib/auth-utils";
 import { LinkProviderButton } from "@/components/link-provider-button";
 import { UnlinkProviderButton } from "@/components/unlink-provider-button";
+import { requireAuth } from "@/lib/require-auth";
 
 export default async function SettingsPage() {
+  const user = await requireAuth();
   const session = await auth();
 
   if (!session?.user) {
