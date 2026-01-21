@@ -21,7 +21,14 @@ export default async function HomePage() {
                 </div>
                 <div className="text-gray-600">{session.user.name}</div>
               </div>
-
+                <div className="mt-4">
+                  <a
+                    href="/settings"
+                    className="text-blue-600 hover:text-blue-700 text-sm"
+                  >
+                    Manage connected accounts →
+                  </a>
+                </div>
               <form
                 action={async () => {
                   "use server";

@@ -1,9 +1,10 @@
-export default function ErrorPage({
+export default async function ErrorPage({
   searchParams,
 }: {
-  searchParams: { error?: string };
+  searchParams: Promise<{ error?: string }>;
 }) {
-  const error = searchParams.error;
+  const params = await searchParams;
+  const error = params.error;
 
   const errorMessages: Record<string, string> = {
     Configuration: 'There is a problem with the server configuration.',

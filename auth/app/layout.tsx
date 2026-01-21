@@ -1,6 +1,7 @@
 import { Providers } from "@/providers/session-provider";
 import { auth } from "@/auth";
 import "./globals.css";
+import { Navbar } from "@/components/navbar";
 
 export default async function RootLayout({
   children,
@@ -12,7 +13,10 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Providers session={session}>{children}</Providers>
+        <Providers session={session}>
+          <Navbar />
+          {children}
+        </Providers>
       </body>
     </html>
   );
