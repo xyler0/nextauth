@@ -17,6 +17,12 @@ export const prisma =
         : ['error'],
   });
 
+  if (process.env.NODE_ENV === 'production') {
+  prisma.$connect().then(() => {
+    console.log('Database connection pool established');
+  });
+}
+
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;
 }
