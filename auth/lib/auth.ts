@@ -29,7 +29,6 @@ export const authConfig = {
     maxAge: 30 * 24 * 60 * 60,
   },
 
-  // ADD THIS - Critical for production
   useSecureCookies: process.env.NODE_ENV === 'production',
   
   cookies: {
@@ -111,11 +110,35 @@ export const authConfig = {
       return session;
     },
 
+    
     async redirect({ url, baseUrl }) {
-      if (url.startsWith(baseUrl)) return url;
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      // Always redirect to frontend after auth
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
       
-      const frontendUrl = process.env.FRONTEND_URL || baseUrl;
+      // If callback URL is provided in query, use it
+      if (url.includes('callbackUrl=')) {
+        const callbackUrl = new URL(url).searchParams.get('callbackUrl');
+        if (callbackUrl) {
+          return callbackUrl;
+        }
+      }
+
+      // If URL is relative, make it absolute to frontend
+      if (url.startsWith('/')) {
+        return `${frontendUrl}${url}`;
+      }
+      
+      // If URL is same origin as auth service, redirect to frontend
+      if (url.startsWith(baseUrl)) {
+        return frontendUrl;
+      }
+      
+      // If URL starts with frontend URL, allow it
+      if (url.startsWith(frontendUrl)) {
+        return url;
+      }
+      
+      // Default: redirect to frontend
       return frontendUrl;
     },
   },
