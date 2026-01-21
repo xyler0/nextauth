@@ -1,8 +1,12 @@
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import { prisma } from "./prisma";
 import GitHub from "next-auth/providers/github";
 import Twitter from "next-auth/providers/twitter";
 import type { NextAuthConfig } from "next-auth";
 
 export const authConfig = {
+  adapter: PrismaAdapter(prisma),
+  
   providers: [
     GitHub({
       clientId: process.env.GITHUB_CLIENT_ID!,
@@ -13,6 +17,7 @@ export const authConfig = {
         },
       },
     }),
+    
     Twitter({
       clientId: process.env.TWITTER_CLIENT_ID!,
       clientSecret: process.env.TWITTER_CLIENT_SECRET!,
@@ -20,9 +25,49 @@ export const authConfig = {
   ],
 
   session: {
-    strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-    updateAge: 24 * 60 * 60, // 24 hours - update session every day
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60,
+  },
+
+  // ADD THIS - Critical for production
+  useSecureCookies: process.env.NODE_ENV === 'production',
+  
+  cookies: {
+    pkceCodeVerifier: {
+      name: process.env.NODE_ENV === 'production' 
+        ? '__Secure-authjs.pkce.code_verifier' 
+        : 'authjs.pkce.code_verifier',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 900, // 15 minutes
+      },
+    },
+    state: {
+      name: process.env.NODE_ENV === 'production'
+        ? '__Secure-authjs.state'
+        : 'authjs.state',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 900,
+      },
+    },
+    sessionToken: {
+      name: process.env.NODE_ENV === 'production'
+        ? '__Secure-authjs.session-token'
+        : 'authjs.session-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
   },
 
   pages: {
@@ -32,17 +77,26 @@ export const authConfig = {
 
   callbacks: {
     async jwt({ token, user, account, trigger }) {
-      // Initial sign in
       if (user) {
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
       }
-
-      // Store provider info
+      
       if (account) {
         token.provider = account.provider;
         token.providerId = account.providerAccountId;
+      }
+
+      if (trigger === "update") {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+        });
+        
+        if (dbUser) {
+          token.email = dbUser.email;
+          token.name = dbUser.name;
+        }
       }
 
       return token;
@@ -58,39 +112,13 @@ export const authConfig = {
     },
 
     async redirect({ url, baseUrl }) {
-      // Allow relative URLs
-      if (url.startsWith('/')) return `${baseUrl}${url}`;
-
-      // Allow same origin
-      if (new URL(url).origin === baseUrl) return url;
-
-      // Allow configured origins
-      const allowedOrigins = [
-        process.env.FRONTEND_URL,
-        process.env.BACKEND_URL,
-      ].filter(Boolean);
-
-      if (allowedOrigins.some(origin => url.startsWith(origin!))) {
-        return url;
-      }
-
-      // Default to base URL for security
-      return baseUrl;
+      if (url.startsWith(baseUrl)) return url;
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      
+      const frontendUrl = process.env.FRONTEND_URL || baseUrl;
+      return frontendUrl;
     },
   },
 
-  cookies: {
-    sessionToken: {
-      name: `${process.env.NODE_ENV === 'production' ? '__Secure-' : ''}next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-      },
-    },
-  },
-
-  useSecureCookies: process.env.NODE_ENV === 'production',
   debug: process.env.NODE_ENV === 'development',
 } satisfies NextAuthConfig;
