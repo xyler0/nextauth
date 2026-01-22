@@ -1,21 +1,13 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import { prisma } from "./prisma";
 import GitHub from "next-auth/providers/github";
 import Twitter from "next-auth/providers/twitter";
 import type { NextAuthConfig } from "next-auth";
 
+// Edge-safe config (no Prisma)
 export const authConfig = {
-  adapter: PrismaAdapter(prisma),
-  
   providers: [
     GitHub({
       clientId: process.env.GITHUB_CLIENT_ID!,
       clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-      authorization: {
-        params: {
-          scope: 'read:user user:email repo',
-        },
-      },
     }),
     
     Twitter({
@@ -24,121 +16,49 @@ export const authConfig = {
     }),
   ],
 
-  session: {
-    strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60,
-  },
-
-  useSecureCookies: process.env.NODE_ENV === 'production',
-  
-  cookies: {
-    pkceCodeVerifier: {
-      name: process.env.NODE_ENV === 'production' 
-        ? '__Secure-authjs.pkce.code_verifier' 
-        : 'authjs.pkce.code_verifier',
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 900, // 15 minutes
-      },
-    },
-    state: {
-      name: process.env.NODE_ENV === 'production'
-        ? '__Secure-authjs.state'
-        : 'authjs.state',
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 900,
-      },
-    },
-    sessionToken: {
-      name: process.env.NODE_ENV === 'production'
-        ? '__Secure-authjs.session-token'
-        : 'authjs.session-token',
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-      },
-    },
-  },
-
   pages: {
     signIn: '/auth/signin',
     error: '/auth/error',
   },
 
   callbacks: {
-    async jwt({ token, user, account, trigger }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
-        token.email = user.email;
-        token.name = user.name;
       }
-      
       if (account) {
         token.provider = account.provider;
-        token.providerId = account.providerAccountId;
       }
-
-      if (trigger === "update") {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: token.id as string },
-        });
-        
-        if (dbUser) {
-          token.email = dbUser.email;
-          token.name = dbUser.name;
-        }
-      }
-
       return token;
     },
 
     async session({ session, token }) {
       if (session.user && token.sub) {
         session.user.id = token.sub;
-        session.user.email = token.email as string;
-        session.user.name = token.name as string;
       }
       return session;
     },
 
-    
     async redirect({ url, baseUrl }) {
-      // Always redirect to frontend after auth
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
       
-      // If callback URL is provided in query, use it
+      // If URL has callbackUrl, use it
       if (url.includes('callbackUrl=')) {
-        const callbackUrl = new URL(url).searchParams.get('callbackUrl');
-        if (callbackUrl) {
-          return callbackUrl;
-        }
+        const params = new URL(url).searchParams;
+        const callbackUrl = params.get('callbackUrl');
+        if (callbackUrl) return callbackUrl;
       }
 
-      // If URL is relative, make it absolute to frontend
-      if (url.startsWith('/')) {
-        return `${frontendUrl}${url}`;
-      }
+      // If relative URL, make absolute to frontend
+      if (url.startsWith('/')) return `${frontendUrl}${url}`;
       
-      // If URL is same origin as auth service, redirect to frontend
-      if (url.startsWith(baseUrl)) {
-        return frontendUrl;
-      }
+      // If same origin, redirect to frontend
+      if (url.startsWith(baseUrl)) return frontendUrl;
       
-      // If URL starts with frontend URL, allow it
-      if (url.startsWith(frontendUrl)) {
-        return url;
-      }
+      // If frontend URL, allow it
+      if (url.startsWith(frontendUrl)) return url;
       
-      // Default: redirect to frontend
+      // Default to frontend
       return frontendUrl;
     },
   },
