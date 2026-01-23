@@ -39,28 +39,19 @@ export const authConfig = {
       return session;
     },
 
-    async redirect({ url, baseUrl }) {
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
-      
-      // If URL has callbackUrl, use it
-      if (url.includes('callbackUrl=')) {
-        const params = new URL(url).searchParams;
-        const callbackUrl = params.get('callbackUrl');
-        if (callbackUrl) return callbackUrl;
-      }
-
-      // If relative URL, make absolute to frontend
-      if (url.startsWith('/')) return `${frontendUrl}${url}`;
-      
-      // If same origin, redirect to frontend
-      if (url.startsWith(baseUrl)) return frontendUrl;
-      
-      // If frontend URL, allow it
-      if (url.startsWith(frontendUrl)) return url;
-      
-      // Default to frontend
-      return frontendUrl;
-    },
+     async redirect({ url, baseUrl }) {
+    // We're now the frontend, so redirect to /dashboard after auth
+    if (url.startsWith(baseUrl)) {
+      return `${baseUrl}/dashboard`;
+    }
+    
+    if (url.startsWith('/')) {
+      return `${baseUrl}${url}`;
+    }
+    
+    // Default to dashboard
+    return `${baseUrl}/dashboard`;
+  },
   },
 
   debug: process.env.NODE_ENV === 'development',
