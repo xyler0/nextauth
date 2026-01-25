@@ -2,18 +2,30 @@ import GitHub from "next-auth/providers/github";
 import Twitter from "next-auth/providers/twitter";
 import type { NextAuthConfig } from "next-auth";
 
-// Edge-safe config (no Prisma)
+
 export const authConfig = {
   providers: [
     GitHub({
       clientId: process.env.GITHUB_CLIENT_ID!,
       clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          scope: 'read:user user:email repo',
+        },
+      },
     }),
     
     Twitter({
-      clientId: process.env.TWITTER_CLIENT_ID!,
-      clientSecret: process.env.TWITTER_CLIENT_SECRET!,
-    }),
+  clientId: process.env.TWITTER_CLIENT_ID!,
+  clientSecret: process.env.TWITTER_CLIENT_SECRET!,
+  authorization: {
+    url: "https://twitter.com/i/oauth2/authorize",
+    params: {
+      scope: "tweet.read tweet.write users.read offline.access",
+      response_type: "code",
+    },
+  },
+}),
   ],
 
   pages: {

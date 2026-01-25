@@ -160,27 +160,32 @@ export default function GitHubRepos({ userId }: GitHubReposProps) {
           </div>
 
           <div className="space-y-2 max-h-96 overflow-y-auto mb-4">
-            {reposData?.repositories?.map((repo: string) => {
-              const isSelected = selectedRepos.includes(repo);
-              return (
-                <button
-                  key={repo}
-                  onClick={() => handleToggleRepo(repo)}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-colors ${
-                    isSelected
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  {isSelected ? (
-                    <CheckCircle className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                  ) : (
-                    <Circle className="h-5 w-5 text-gray-400 flex-shrink-0" />
-                  )}
-                  <span className="text-left font-mono text-sm">{repo}</span>
-                </button>
-              );
-            })}
+            {reposData?.repositories?.map((repo: { fullName: string; isPrivate: boolean }) => {
+           const isSelected = selectedRepos.includes(repo.fullName);
+           return (
+             <button
+               key={repo.fullName}
+               onClick={() => handleToggleRepo(repo.fullName)}
+               className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-colors ${
+                 isSelected
+                   ? 'border-blue-500 bg-blue-50'
+                   : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+               }`}
+             >
+              {isSelected ? (
+                <CheckCircle className="h-5 w-5 text-blue-600 flex-shrink-0" />
+              ) : (
+                <Circle className="h-5 w-5 text-gray-400 flex-shrink-0" />
+              )}
+              <span className="text-left font-mono text-sm flex-1">{repo.fullName}</span>
+              {repo.isPrivate && (
+                <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded">
+                  Private
+                </span>
+              )}
+             </button>
+             );
+           })}
           </div>
 
           <div className="flex gap-3">
