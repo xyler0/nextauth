@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, FileText, MessageSquare, Settings, LogOut, TrendingUp } from 'lucide-react';
+import { Home, FileText, MessageSquare, Settings, LogOut, TrendingUp, Menu, X } from 'lucide-react';
 import { signOut } from 'next-auth/react';
+import { useState } from 'react';
 
 interface SidebarProps {
   user: {
@@ -14,6 +15,7 @@ interface SidebarProps {
 
 export default function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
 
   const navItems = [
     { path: '/dashboard', icon: Home, label: 'Dashboard' },
@@ -23,16 +25,16 @@ export default function Sidebar({ user }: SidebarProps) {
     { path: '/settings', icon: Settings, label: 'Settings' },
   ];
 
-  return (
-    <div className="w-64 bg-white border-r border-gray-200 h-screen flex flex-col">
+  const NavContent = () => (
+    <>
       <div className="p-6">
         <h1 className="text-2xl font-bold text-gray-900">X Poster</h1>
         {user.name && (
-          <p className="text-sm text-gray-600 mt-2">{user.name}</p>
+          <p className="text-sm text-gray-600 mt-2 truncate">{user.name}</p>
         )}
       </div>
 
-      <nav className="flex-1 px-4">
+      <nav className="flex-1 px-4 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.path;
@@ -41,6 +43,7 @@ export default function Sidebar({ user }: SidebarProps) {
             <Link
               key={item.path}
               href={item.path}
+              onClick={() => setIsOpen(false)}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-1 transition-colors ${
                 isActive
                   ? 'bg-blue-50 text-blue-700'
@@ -63,6 +66,43 @@ export default function Sidebar({ user }: SidebarProps) {
           <span className="font-medium">Logout</span>
         </button>
       </div>
-    </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg border border-gray-200"
+        aria-label="Toggle menu"
+      >
+        {isOpen ? <X size={24} /> : <Menu size={24} />}
+      </button>
+
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:flex lg:w-64 bg-white border-r border-gray-200 h-screen flex-col">
+        <NavContent />
+      </div>
+
+      {/* Mobile Sidebar */}
+      <div
+        className={`lg:hidden fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="h-full flex flex-col">
+          <NavContent />
+        </div>
+      </div>
+    </>
   );
 }

@@ -14,9 +14,9 @@ export default async function ProtectedLayout({
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
       <Sidebar user={session.user} />
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto pt-16 lg:pt-0">
         {children}
       </main>
     </div>
