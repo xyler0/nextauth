@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useBackendApi } from '@/hooks/useBackendApi';
-import { Upload, TrendingUp, Loader2, Info } from 'lucide-react';
+import { Upload, TrendingUp, Loader2, Info, Plus, X, Lightbulb } from 'lucide-react';
 import TrainingTips from '@/components/TrainingTips';
 
 export default function PatternClient() {
-  const [posts, setPosts] = useState('');
+  const [posts, setPosts] = useState<string[]>(['']);
   const queryClient = useQueryClient();
   const { api, isConfigured } = useBackendApi();
 
@@ -37,19 +37,35 @@ export default function PatternClient() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pattern-profile'] });
       queryClient.invalidateQueries({ queryKey: ['pattern-stats'] });
-      setPosts('');
+      setPosts(['']);
       alert('Pattern learned successfully!');
     },
   });
 
+  const addPost = () => {
+    setPosts([...posts, '']);
+  };
+
+  const removePost = (index: number) => {
+    setPosts(posts.filter((_, i) => i !== index));
+  };
+
+  const updatePost = (index: number, value: string) => {
+    const newPosts = [...posts];
+    newPosts[index] = value;
+    setPosts(newPosts);
+  };
+
   const handleImport = () => {
-    const postArray = posts.split('\n').map(p => p.trim()).filter(p => p.length > 0);
-    if (postArray.length < 5) {
-      alert('Please provide at least 5 posts (one per line)');
+    const validPosts = posts.map(p => p.trim()).filter(p => p.length > 0);
+    if (validPosts.length < 5) {
+      alert('Please provide at least 5 posts');
       return;
     }
-    importMutation.mutate(postArray);
+    importMutation.mutate(validPosts);
   };
+
+  const validPostCount = posts.filter(p => p.trim().length > 0).length;
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
@@ -76,9 +92,10 @@ export default function PatternClient() {
           </div>
         </div>
       )}
-
+      
       <TrainingTips />
 
+      {/* Import Section */}
       <div className="bg-white shadow-md rounded-xl p-6 mb-8">
         <div className="flex items-center gap-2 mb-4">
           <Upload size={20} className="text-blue-600" />
@@ -88,31 +105,74 @@ export default function PatternClient() {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 flex items-start gap-3">
           <Info size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-blue-900">
-            <p className="font-semibold mb-1">How to get your past posts:</p>
+            <p className="font-semibold mb-1">How to import your posts:</p>
             <ol className="list-decimal ml-4 space-y-1">
               <li>Go to your X/Twitter profile</li>
-              <li>Copy 10-20 of your recent posts</li>
-              <li>Paste them below (one per line)</li>
-              <li>Click "Learn Pattern"</li>
+              <li>Copy your recent posts</li>
+              <li>Paste each post in a separate box below</li>
+              <li>Click "Add Post" to add more posts</li>
+              <li>Click "Learn Pattern" when done (minimum 5 posts)</li>
             </ol>
           </div>
         </div>
 
-        <textarea
-          value={posts}
-          onChange={(e) => setPosts(e.target.value)}
-          placeholder="Paste your posts here, one per line..."
-          className="w-full h-64 p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none font-mono text-sm"
-        />
+        {/* Post Input Boxes */}
+        <div className="space-y-4 mb-4">
+          {posts.map((post, index) => (
+            <div key={index} className="relative">
+              <div className="flex items-start gap-2">
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-semibold text-gray-700">
+                      Post {index + 1}
+                    </span>
+                    {posts.length > 1 && (
+                      <button
+                        onClick={() => removePost(index)}
+                        className="text-red-500 hover:text-red-700 transition-colors"
+                        title="Remove post"
+                      >
+                        <X size={16} />
+                      </button>
+                    )}
+                  </div>
+                  <textarea
+                    value={post}
+                    onChange={(e) => updatePost(index, e.target.value)}
+                    placeholder="Paste your post here..."
+                    className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm"
+                    rows={3}
+                  />
+                  <div className="text-xs text-gray-500 mt-1">
+                    {post.trim().length} characters
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
 
-        <div className="flex justify-between items-center mt-4">
-          <span className="text-sm text-gray-500">
-            {posts.split('\n').filter(p => p.trim().length > 0).length} posts
-          </span>
+        {/* Add Post Button */}
+        <button
+          onClick={addPost}
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors mb-4"
+        >
+          <Plus size={20} />
+          <span className="font-semibold">Add Another Post</span>
+        </button>
+
+        {/* Action Bar */}
+        <div className="flex justify-between items-center pt-4 border-t">
+          <div className="text-sm">
+            <span className={`font-semibold ${validPostCount >= 5 ? 'text-green-600' : 'text-gray-500'}`}>
+              {validPostCount} posts
+            </span>
+            <span className="text-gray-500"> (minimum 5 required)</span>
+          </div>
           <button
             onClick={handleImport}
-            disabled={importMutation.isPending || posts.split('\n').filter(p => p.trim().length > 0).length < 5}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+            disabled={importMutation.isPending || validPostCount < 5}
+            className="flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {importMutation.isPending ? (
               <>
@@ -129,6 +189,7 @@ export default function PatternClient() {
         </div>
       </div>
 
+      {/* Pattern Profile Display */}
       {profile?.exists && (
         <div className="bg-white shadow-md rounded-xl p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Your Writing Pattern</h2>
@@ -144,13 +205,26 @@ export default function PatternClient() {
               <div className="flex items-center gap-2">
                 <div className="flex-1 bg-gray-200 rounded-full h-2">
                   <div
-                    className="bg-blue-600 h-2 rounded-full"
+                    className="bg-blue-600 h-2 rounded-full transition-all"
                     style={{ width: `${(profile.pattern.formalityScore / 10) * 100}%` }}
                   />
                 </div>
                 <span className="text-sm font-semibold">{profile.pattern.formalityScore.toFixed(1)}/10</span>
               </div>
             </div>
+            
+            {profile.pattern.commonStarters && profile.pattern.commonStarters.length > 0 && (
+              <div>
+                <p className="text-sm text-gray-600 mb-2">Common Sentence Starters</p>
+                <div className="flex flex-wrap gap-2">
+                  {profile.pattern.commonStarters.slice(0, 5).map((starter: string, i: number) => (
+                    <span key={i} className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                      {starter}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
