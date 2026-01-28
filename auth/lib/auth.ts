@@ -34,12 +34,20 @@ export const authConfig = {
   },
 
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, profile }) {
       if (user) {
         token.id = user.id;
       }
       if (account) {
         token.provider = account.provider;
+        // Store username from OAuth profile
+        if (profile) {
+          if (account.provider === 'github') {
+            token.username = (profile as any).login; 
+          } else if (account.provider === 'twitter') {
+            token.username = (profile as any).data?.username;
+          }
+        }
       }
       return token;
     },
@@ -52,7 +60,6 @@ export const authConfig = {
     },
 
      async redirect({ url, baseUrl }) {
-    // We're now the frontend, so redirect to /dashboard after auth
     if (url.startsWith(baseUrl)) {
       return `${baseUrl}/dashboard`;
     }

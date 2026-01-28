@@ -75,11 +75,8 @@ export default function DashboardClient({ userId }: DashboardClientProps) {
             <div>
               <p className="text-sm text-gray-600 mb-1">GitHub</p>
               <p className="text-lg font-semibold text-gray-900">
-                {connections?.github?.linked ? '✓ Connected' : '✗ Not Connected'}
+                GitHub: {connections?.github?.linked ? (connections?.github?.username || 'Connected') : 'Not connected'}
               </p>
-              {connections?.github?.username && (
-                <p className="text-sm text-gray-500">@{connections.github.username}</p>
-              )}
             </div>
             <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
               <GitBranch className="text-gray-700" size={24} />
@@ -92,11 +89,8 @@ export default function DashboardClient({ userId }: DashboardClientProps) {
             <div>
               <p className="text-sm text-gray-600 mb-1">Twitter</p>
               <p className="text-lg font-semibold text-gray-900">
-                {connections?.twitter?.linked ? '✓ Connected' : '✗ Not Connected'}
+                Twitter: {connections?.twitter?.linked ? (connections?.twitter?.username || 'Connected') : 'Not connected'}
               </p>
-              {connections?.twitter?.username && (
-                <p className="text-sm text-gray-500">{connections.twitter.username}</p>
-              )}
             </div>
             <div className="w-12 h-12 bg-sky-100 rounded-lg flex items-center justify-center">
               <SiX className="text-sky-600" size={24} />
