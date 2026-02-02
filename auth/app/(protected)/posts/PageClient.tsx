@@ -3,21 +3,22 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useBackendApi } from '@/hooks/useBackendApi';
-import { Send, Loader2, Trash2 } from 'lucide-react';
+import { Send, Loader2, Trash2, Edit2, X, CheckCircle } from 'lucide-react';
 import FeedbackForm from '@/components/FeedbackForm';
 
 export default function PostsClient() {
   const [content, setContent] = useState('');
+  const [showPreview, setShowPreview] = useState(false);
+  const [generatedContent, setGeneratedContent] = useState('');
   const [editedContent, setEditedContent] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [postError, setPostError] = useState('');
+  
   const queryClient = useQueryClient();
   const { api, isConfigured } = useBackendApi();
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [lastGenerated, setLastGenerated] = useState<{
-    original: string;
-    generated: string;
-  } | null>(null);
 
-  const { data: posts } = useQuery({
+  const { data: posts, isLoading: postsLoading } = useQuery({
     queryKey: ['posts'],
     queryFn: async () => {
       const { data } = await api.get('/posts');
@@ -26,26 +27,52 @@ export default function PostsClient() {
     enabled: isConfigured,
   });
 
-  const createMutation = useMutation({
-    mutationFn: async (content: string) => {
-      const { data } = await api.post('/posts/manual', { content });
+  // Step 1: Generate preview (tone-enforced version)
+  const generatePreviewMutation = useMutation({
+    mutationFn: async (text: string) => {
+      const { data } = await api.post('/tone/preview', { text }); // New endpoint
       return data;
     },
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
-      queryClient.invalidateQueries({ queryKey: ['stats'] });
-      
-      // Show feedback form with generated content
-      setLastGenerated({ 
-        original: variables, 
-        generated: data.content || variables 
-      });
-      setEditedContent(data.content || variables);
-      setShowFeedback(true);
-      setContent('');
+    onSuccess: (data) => {
+      setGeneratedContent(data.transformed);
+      setEditedContent(data.transformed);
+      setShowPreview(true);
+      setPostError('');
     },
     onError: (error: any) => {
-      alert(error.response?.data?.message || 'Failed to create post');
+      const message = error.response?.data?.message || 'Failed to generate preview';
+      setPostError(message);
+    },
+  });
+
+  // Step 2: Actually post to X
+  const postToXMutation = useMutation({
+    mutationFn: async (finalContent: string) => {
+      const { data } = await api.post('/posts/manual', { 
+        content: finalContent,
+        originalContent: content, // Send both for tracking
+      });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      queryClient.invalidateQueries({ queryKey: ['stats'] });
+      setShowPreview(false);
+      setShowFeedback(true);
+    },
+    onError: (error: any) => {
+      const message = error.response?.data?.message || 'Failed to post';
+      
+      // Handle specific error cases
+      if (message.includes('duplicate') || message.includes('Duplicate')) {
+        setPostError('⚠️ This content has already been posted. Please create something new.');
+      } else if (message.includes('Daily limit')) {
+        setPostError('⚠️ You\'ve reached your daily post limit. Try again tomorrow!');
+      } else if (message.includes('rate limit')) {
+        setPostError('⚠️ Posting too quickly. Please wait a moment and try again.');
+      } else {
+        setPostError(message);
+      }
     },
   });
 
@@ -57,8 +84,10 @@ export default function PostsClient() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pattern-stats'] });
       setShowFeedback(false);
-      setLastGenerated(null);
+      setContent('');
+      setGeneratedContent('');
       setEditedContent('');
+      setIsEditing(false);
     },
   });
 
@@ -72,15 +101,31 @@ export default function PostsClient() {
     },
   });
 
-  const handleFeedbackSubmit = async (feedbackData: {
-    originalText: string;
-    generatedText: string;
-    editedText?: string;
-    rating: number;
-    feedback?: string;
-    accepted: boolean;
-  }) => {
-    await feedbackMutation.mutateAsync(feedbackData);
+  const handleGeneratePreview = () => {
+    setPostError('');
+    generatePreviewMutation.mutate(content);
+  };
+
+  const handlePost = () => {
+    const finalContent = isEditing ? editedContent : generatedContent;
+    postToXMutation.mutate(finalContent);
+  };
+
+  const handleCancel = () => {
+    setShowPreview(false);
+    setIsEditing(false);
+    setGeneratedContent('');
+    setEditedContent('');
+    setPostError('');
+  };
+
+  const handleFeedbackSubmit = async (feedbackData: any) => {
+    await feedbackMutation.mutateAsync({
+      ...feedbackData,
+      originalText: content,
+      generatedText: generatedContent,
+      editedText: isEditing ? editedContent : undefined,
+    });
   };
 
   return (
@@ -88,59 +133,170 @@ export default function PostsClient() {
       <h1 className="text-3xl font-bold text-gray-900 mb-2">Posts</h1>
       <p className="text-gray-600 mb-8">Create and manage your posts</p>
 
+      {/* Error Display */}
+      {postError && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+          <div className="flex-shrink-0 mt-0.5">
+            <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center">
+              <X size={14} className="text-red-600" />
+            </div>
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-red-800 font-medium">Unable to post</p>
+            <p className="text-sm text-red-700 mt-1">{postError}</p>
+          </div>
+          <button
+            onClick={() => setPostError('')}
+            className="flex-shrink-0 text-red-400 hover:text-red-600"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
       {/* Create Post Card */}
       <div className="bg-white shadow-md rounded-xl p-6 mb-8">
         <h2 className="text-xl font-bold text-gray-900 mb-4">Create Manual Post</h2>
         <p className="text-sm text-gray-600 mb-4">
-          Write your raw content below. The AI will transform it to match your writing style.
+          Write your raw content below. AI will transform it to match your writing style, then you can review before posting.
         </p>
         
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="Write your post... (will be tone-enforced and matched to your style)"
+          placeholder="Write your post... (AI will refine it to match your style)"
           className="w-full h-32 p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm"
+          disabled={showPreview}
         />
         
         <div className="flex justify-between items-center mt-4">
-          <div className="text-sm text-gray-500">
-            <span className={content.length > 280 ? 'text-red-600' : ''}>
+          <div className="text-sm">
+            <span className={content.length > 500 ? 'text-red-600 font-medium' : 'text-gray-500'}>
               {content.length}
             </span>
-            /280 characters
+            <span className="text-gray-400">/500 characters</span>
           </div>
           <button
-            onClick={() => createMutation.mutate(content)}
-            disabled={content.length < 10 || content.length > 280 || createMutation.isPending}
+            onClick={handleGeneratePreview}
+            disabled={content.length < 10 || content.length > 500 || generatePreviewMutation.isPending || showPreview}
             className="flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {createMutation.isPending ? (
+            {generatePreviewMutation.isPending ? (
               <>
                 <Loader2 className="animate-spin" size={16} />
-                Posting...
+                Generating...
               </>
             ) : (
               <>
-                <Send size={16} />
-                Post Now
+                <Edit2 size={16} />
+                Generate Preview
               </>
             )}
           </button>
         </div>
       </div>
 
-      {/* Feedback Modal/Card */}
-      {showFeedback && lastGenerated && (
+      {/* Preview & Edit Card */}
+      {showPreview && (
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 shadow-lg rounded-xl p-6 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-gray-900">Review Your Post</h2>
+            <button
+              onClick={handleCancel}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Original vs Generated */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="bg-white rounded-lg p-4 border border-gray-200">
+              <p className="text-xs font-semibold text-gray-500 uppercase mb-2">
+                Original
+              </p>
+              <p className="text-sm text-gray-700 leading-relaxed">{content}</p>
+              <div className="mt-2 text-xs text-gray-500">
+                {content.length} characters
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg p-4 border border-blue-300 ring-2 ring-blue-100">
+              <p className="text-xs font-semibold text-blue-600 uppercase mb-2">
+                AI Refined {isEditing && '(Editing)'}
+              </p>
+              {isEditing ? (
+                <textarea
+                  value={editedContent}
+                  onChange={(e) => setEditedContent(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none"
+                  rows={4}
+                />
+              ) : (
+                <p className="text-sm text-gray-900 leading-relaxed">{generatedContent}</p>
+              )}
+              <div className="mt-2 flex items-center justify-between">
+                <div className="text-xs text-gray-500">
+                  {(isEditing ? editedContent : generatedContent).length}/280 characters
+                </div>
+                <button
+                  onClick={() => setIsEditing(!isEditing)}
+                  className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                >
+                  <Edit2 size={12} />
+                  {isEditing ? 'Stop Editing' : 'Edit'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3">
+            <button
+              onClick={handleCancel}
+              className="flex-1 px-6 py-3 rounded-lg font-semibold text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handlePost}
+              disabled={postToXMutation.isPending || (isEditing && editedContent.length > 280)}
+              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {postToXMutation.isPending ? (
+                <>
+                  <Loader2 className="animate-spin" size={16} />
+                  Posting to X...
+                </>
+              ) : (
+                <>
+                  <CheckCircle size={16} />
+                  Post to X
+                </>
+              )}
+            </button>
+          </div>
+
+          <p className="text-xs text-center text-gray-500 mt-4">
+            You'll be able to provide feedback after posting
+          </p>
+        </div>
+      )}
+
+      {/* Feedback Modal */}
+      {showFeedback && (
         <div className="mb-8">
           <FeedbackForm
-            originalText={lastGenerated.original}
-            generatedText={lastGenerated.generated}
-            editedText={editedContent !== lastGenerated.generated ? editedContent : undefined}
+            originalText={content}
+            generatedText={generatedContent}
+            editedText={isEditing ? editedContent : undefined}
             onSubmit={handleFeedbackSubmit}
             onClose={() => {
               setShowFeedback(false);
-              setLastGenerated(null);
+              setContent('');
+              setGeneratedContent('');
               setEditedContent('');
+              setIsEditing(false);
             }}
           />
         </div>
@@ -150,7 +306,11 @@ export default function PostsClient() {
       <div className="space-y-4">
         <h2 className="text-xl font-bold text-gray-900">Post History</h2>
         
-        {posts && posts.length > 0 ? (
+        {postsLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+          </div>
+        ) : posts && posts.length > 0 ? (
           <div className="space-y-4">
             {posts.map((post: any) => (
               <div key={post.id} className="bg-white shadow-md rounded-xl p-6 hover:shadow-lg transition-shadow">
@@ -172,12 +332,12 @@ export default function PostsClient() {
                     </span>
                     <button
                       onClick={() => {
-                        if (confirm('Delete this post?')) {
+                        if (confirm('Delete this post from history? (This won\'t delete it from X)')) {
                           deleteMutation.mutate(post.id);
                         }
                       }}
                       className="text-red-600 hover:text-red-700 transition-colors"
-                      title="Delete post"
+                      title="Delete from history"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -216,6 +376,7 @@ export default function PostsClient() {
           </div>
         ) : (
           <div className="text-center py-12 bg-white rounded-xl shadow-md">
+            <Send size={48} className="mx-auto text-gray-300 mb-4" />
             <p className="text-gray-500 mb-2">No posts yet</p>
             <p className="text-sm text-gray-400">Create your first post above!</p>
           </div>
