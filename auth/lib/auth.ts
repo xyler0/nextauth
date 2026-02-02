@@ -145,7 +145,7 @@ export const authConfig = {
       if (session.user && token.sub) {
         session.user.id = token.sub;
         session.user.name = token.name;
-        session.user.email = token.email;
+        session.user.email = token.email ?? "";
       }
       return session;
     },
