@@ -12,7 +12,7 @@ export const authConfig = {
       clientSecret: process.env.GITHUB_CLIENT_SECRET!,
       authorization: {
         params: {
-          scope: 'read:user user:email repo',
+          scope: 'read:user user:email repo admin:repo_hook',
         },
       },
       profile(profile) {
@@ -21,7 +21,6 @@ export const authConfig = {
           name: profile.name || profile.login,
           email: profile.email,
           image: profile.avatar_url,
-          username: profile.login,
         };
       },
     }),
@@ -42,7 +41,6 @@ export const authConfig = {
           name: profile.data.name,
           email: profile.data.email || `${profile.data.username}@twitter.placeholder`,
           image: profile.data.profile_image_url,
-          username: profile.data.username,
         };
       },
     }),
