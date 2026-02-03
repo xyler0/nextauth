@@ -1,12 +1,13 @@
 import { auth } from "@/auth";
 import ConnectedAccounts from "@/components/settings/ConnectedAccounts";
 import GitHubRepos from "@/components/settings/GitHubRepos";
+import CacheClearButton from "@/components/settings/CacheClearButton";
 
 export default async function SettingsPage() {
   const session = await auth();
   
   if (!session?.user) {
-    return null; // Protected layout will handle redirect
+    return null;
   }
 
   return (
@@ -38,9 +39,12 @@ export default async function SettingsPage() {
       </div>
 
       {/* GitHub Repos */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white rounded-lg shadow p-6 mb-8">
         <GitHubRepos userId={session.user.id} />
       </div>
+
+      {/* Cache Management */}
+      <CacheClearButton />
     </div>
   );
 }

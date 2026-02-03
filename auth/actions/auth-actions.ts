@@ -5,8 +5,10 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { clearAuthCache, clearUserCache } from "@/lib/cache-manager";
 
 export async function handleSignOut() {
+  await clearAuthCache();
   await signOut({ redirect: false });
   redirect('/auth/signin');
 }
@@ -38,4 +40,16 @@ export async function unlinkProvider(provider: string) {
   revalidatePath('/settings');
   
   return { success: true };
+}
+
+export async function forceClearCache() {
+  const session = await auth();
+  
+  if (session?.user?.id) {
+    await clearUserCache(session.user.id);
+  }
+  
+  await clearAuthCache();
+  
+  return { success: true, message: "Cache cleared successfully" };
 }
